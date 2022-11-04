@@ -15,6 +15,3 @@ for i in np.arange(n):
         jnp.array([549229066, 500358972], dtype=jnp.uint32), 100
     )
     pns[i] = pn
-
-
-Distribution

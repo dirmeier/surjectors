@@ -1,10 +1,10 @@
 from abc import abstractmethod
 
 from jax import numpy as jnp
-from surjectors.surjectors.transform import Transform
+from surjectors.surjectors._transform import Transform
 
 
-_valid_kinds = ["inference_surjector", "generative_surjector", "bijector"]
+_valid_kinds = ["inference_surjector", "generative_surjector", "bijector", "surjector"]
 
 
 class Surjector(Transform):

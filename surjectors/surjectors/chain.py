@@ -3,6 +3,7 @@ from surjectors.surjectors.surjector import Surjector
 
 class Chain(Surjector):
     def __init__(self, surjectors):
+        super().__init__(None, None, None, "surjector")
         self._surjectors = surjectors
 
     def inverse_and_likelihood_contribution(self, y):
@@ -18,4 +19,3 @@ class Chain(Surjector):
             x, lc = _surjectors.forward_and_log_det(x)
             log_det += lc
         return y, log_det
-
