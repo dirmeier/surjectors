@@ -1,8 +1,11 @@
+from typing import Tuple
+
 import chex
 import jax
 import jax.numpy as jnp
 from chex import PRNGKey
 from distrax import Distribution
+
 Array = chex.Array
 from surjectors.surjectors.surjector import Surjector
 
@@ -12,11 +15,18 @@ class TransformedDistribution:
         self.base_distribution = base_distribution
         self.surjector = surjector
 
-    def log_prob(self, y: Array) -> jnp.ndarray:
+    def __call__(self, method, **kwargs):
+        return getattr(self, method)(**kwargs)
+
+    def log_prob(self, y: Array) -> Array:
+        _, lp = self.inverse_and_log_prob(y)
+        return lp
+
+    def inverse_and_log_prob(self, y: Array) -> Tuple[Array, Array]:
         x, lc = self.surjector.inverse_and_likelihood_contribution(y)
         lp_x = self.base_distribution.log_prob(x)
-        lp = lp_x - lc
-        return lp
+        lp = lp_x + lc
+        return x, lp
 
     def sample(self, key: PRNGKey, sample_shape=(1,)):
         z = self.base_distribution.sample(seed=key, sample_shape=sample_shape)
@@ -27,6 +37,8 @@ class TransformedDistribution:
         z, lp_z = self.base_distribution.sample_and_log_prob(
             seed=key, sample_shape=sample_shape
         )
-        y, fldj = jax.vmap(self.surjector.forward_and_likelihood_contribution)(z)
+        y, fldj = jax.vmap(self.surjector.forward_and_likelihood_contribution)(
+            z
+        )
         lp = jax.vmap(jnp.subtract)(lp_z, fldj)
         return y, lp

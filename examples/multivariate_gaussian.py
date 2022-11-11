@@ -1,32 +1,186 @@
-prng = hk.PRNGSequence(jax.random.PRNGKey(42))
-matrix = jax.random.uniform(next(prng), (4, 4))
-bias = jax.random.normal(next(prng),  (4,))
-bijector = LowerUpperTriangularAffine(matrix, bias)
+import distrax
+import haiku as hk
+import jax
+import numpy as np
+import optax
+import matplotlib.pyplot as plt
 
-#
-# def loss():
-#     x, lc = bijector.inverse_and_log_det(jnp.zeros(4) * 2.1)
-#     lp = distrax.Normal(jnp.zeros(4)).log_prob(x)
-#     return -jnp.sum(lp - lc)
-#
-# print(bijector.matrix)
-#
-# adam = optax.adam(0.003)
-# g = jax.grad(loss)()
-#
-# print(g)
-#
+from jax import numpy as jnp
+from jax import random
 
-matrix = jax.random.uniform(next(prng), (4, 4))
-bias = jax.random.normal(next(prng),  (4,))
-bijector = LowerUpperTriangularAffine(matrix, bias)
+from surjectors.surjectors.chain import Chain
+from surjectors.surjectors.slice import Slice
+from surjectors.distributions.transformed_distribution import (
+    TransformedDistribution,
+)
 
-n = jnp.ones((4, 4)) * 3.1
-n += jnp.triu(n) * 2
+from jax import config
 
-bijector = LowerUpperTriangularAffine(n, jnp.zeros(4))
+config.update("jax_enable_x64", True)
 
 
-print(bijector.forward(jnp.ones(4)))
+def _get_sampler_and_loadings(rng_key, batch_size, n_dimension):
+    pz_mean = jnp.array([-2.31, 0.421, 0.1, 3.21, -0.41])
+    pz = distrax.MultivariateNormalDiag(
+        loc=pz_mean, scale_diag=jnp.ones_like(pz_mean)
+    )
+    p_loadings = distrax.Normal(0.0, 10.0)
+    make_noise = distrax.Normal(0.0, 1)
 
-print(n @jnp.ones(4) )
+    loadings_sample_key, rng_key = random.split(rng_key, 2)
+    loadings = p_loadings.sample(
+        seed=loadings_sample_key, sample_shape=(n_dimension, len(pz_mean))
+    )
+
+    def _fn(rng_key):
+        z_sample_key, noise_sample_key = random.split(rng_key, 2)
+        z = pz.sample(seed=z_sample_key, sample_shape=(batch_size,))
+        noise = +make_noise.sample(
+            seed=noise_sample_key, sample_shape=(batch_size, n_dimension)
+        )
+
+        # y = (loadings @ z.T).T + noise
+        y = jnp.concatenate([z, -z], axis=-1)
+        return y, z
+
+    return _fn, loadings
+
+
+def _get_surjector(n_dimension, n_latent):
+    def _bijector_conditioner(dim):
+        return hk.Sequential(
+            [
+                hk.Linear(
+                    32,
+                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
+                    b_init=jnp.zeros,
+                ),
+                jax.nn.gelu,
+                hk.Linear(
+                    32,
+                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
+                    b_init=jnp.zeros,
+                ),
+                jax.nn.gelu,
+                hk.Linear(dim * 2),
+            ]
+        )
+
+    def _surjector_conditioner():
+        return hk.Sequential(
+            [
+                hk.Linear(
+                    16,
+                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
+                    b_init=jnp.zeros,
+                ),
+                jax.nn.gelu,
+                hk.Linear(
+                    16,
+                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
+                    b_init=jnp.zeros,
+                ),
+                jax.nn.gelu,
+                hk.Linear((n_dimension - n_latent) * 2),
+            ]
+        )
+
+    def _decoder_fn():
+        decoder_net = _surjector_conditioner()
+
+        def _fn(z):
+            params = decoder_net(z)
+            mu, log_scale = jnp.split(params, 2, -1)
+            return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+
+        return _fn
+
+    def _bijector_fn(params):
+        means, log_scales = jnp.split(params, 2, -1)
+        return distrax.ScalarAffine(means, jnp.exp(log_scales))
+
+    def _transformation_fn():
+        layers = []
+        mask = jnp.arange(0, np.prod(n_dimension)) % 2
+        mask = jnp.reshape(mask, n_dimension)
+        mask = mask.astype(bool)
+
+        for _ in range(2):
+            layer = distrax.MaskedCoupling(
+                mask=mask,
+                bijector=_bijector_fn,
+                conditioner=_bijector_conditioner(n_dimension),
+            )
+            layers.append(layer)
+
+        layers.append(Slice(n_latent, _decoder_fn()))
+
+        mask = jnp.arange(0, np.prod(n_latent)) % 2
+        mask = jnp.reshape(mask, n_latent)
+        mask = mask.astype(bool)
+
+        for _ in range(2):
+            layer = distrax.MaskedCoupling(
+                mask=mask,
+                bijector=_bijector_fn,
+                conditioner=_bijector_conditioner(n_latent),
+            )
+            layers.append(layer)
+            mask = jnp.logical_not(mask)
+        # return Chain(layers)
+        return Slice(n_latent, _decoder_fn())
+
+    def _base_fn():
+        base_distribution = distrax.Independent(
+            distrax.Normal(jnp.zeros(n_latent), jnp.ones(n_latent)),
+            reinterpreted_batch_ndims=1,
+        )
+        return base_distribution
+
+    def _flow(method, **kwargs):
+        td = TransformedDistribution(_base_fn(), _transformation_fn())
+        return td(method, **kwargs)
+
+    td = hk.transform(_flow)
+    return td
+
+
+def run(key=0, n_iter=1000, batch_size=64, n_data=10, n_latent=5):
+    rng_seq = hk.PRNGSequence(0)
+    pyz, loadings = _get_sampler_and_loadings(next(rng_seq), batch_size, n_data)
+    flow = _get_surjector(n_data, n_latent)
+
+    @jax.jit
+    def step(params, state, y_batch, rng):
+        def loss_fn(params):
+            lp = flow.apply(params, rng, method="log_prob", y=y_batch)
+            return -jnp.sum(lp)
+
+        loss, grads = jax.value_and_grad(loss_fn)(params)
+        updates, new_state = adam.update(grads, state, params)
+        new_params = optax.apply_updates(params, updates)
+        return loss, new_params, new_state
+
+    y_init, _ = pyz(random.fold_in(next(rng_seq), 0))
+    params = flow.init(random.PRNGKey(key), method="log_prob", y=y_init)
+    adam = optax.adamw(0.001)
+    state = adam.init(params)
+
+    losses = [0] * n_iter
+    for i in range(n_iter):
+        y_batch, _ = pyz(next(rng_seq))
+        loss, params, state = step(params, state, y_batch, next(rng_seq))
+        losses[i] = loss
+
+    losses = jnp.asarray(losses)
+    plt.plot(losses)
+    plt.show()
+
+    y_batch, z_batch = pyz(next(rng_seq))
+    y_pred = flow.apply(params, next(rng_seq), method="sample", y=y_batch)
+    print(y_batch[:5, :])
+    print(y_pred[:5, :])
+
+
+if __name__ == "__main__":
+    run()

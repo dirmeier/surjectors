@@ -7,11 +7,22 @@ class Chain(Surjector):
         self._surjectors = surjectors
 
     def inverse_and_likelihood_contribution(self, y):
-        z, log_det = self._surjectors[0].forward_and_log_det(y)
+        z, lcs = self._inverse_and_log_contribution_dispatch(
+            self._surjectors[0], y
+        )
         for surjector in self._surjectors[1:]:
-            x, lc = surjector.inverse_and_likelihood_contribution(z)
-            log_det += lc
-        return z, log_det
+            z, lc = self._inverse_and_log_contribution_dispatch(surjector, z)
+            lcs += lc
+        return z, lcs
+
+    @staticmethod
+    def _inverse_and_log_contribution_dispatch(surjector, y):
+        if isinstance(surjector, Surjector):
+            fn = getattr(surjector, "inverse_and_likelihood_contribution")
+        else:
+            fn = getattr(surjector, "inverse_and_log_det")
+        z, lc = fn(y)
+        return z, lc
 
     def forward_and_likelihood_contribution(self, z):
         y, log_det = self._surjectors[-1].forward_and_log_det(z)

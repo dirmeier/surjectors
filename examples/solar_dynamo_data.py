@@ -2,17 +2,6 @@ from jax import random, lax
 from jax.scipy.special import erf
 
 
-class Simulator:
-    def __new__(cls, simulator="solar_dynamo", **kwargs):
-        if simulator == "solar_dynamo":
-            return SolarDynamoSimulator(**kwargs)
-        return StandardSimulator()
-
-
-class StandardSimulator:
-    pass
-
-
 class SolarDynamoSimulator:
     def __init__(self, **kwargs):
         self.p0_mean = kwargs.get("p0_mean", 1.0)
@@ -24,7 +13,7 @@ class SolarDynamoSimulator:
         self.alpha1 = kwargs.get("alpha1", None)
         self.alpha2 = kwargs.get("alpha2", None)
 
-    def sample(self, key, len_timeseries=1000):
+    def sample(self, key, batclen_timeseries=1000):
         p_key, alpha1_key, alpha2_key, epsilon_key, key = random.split(key, 5)
         p0 = random.normal(p_key) * self.p0_std + self.p0_mean
         alpha1 = random.uniform(
@@ -42,7 +31,8 @@ class SolarDynamoSimulator:
 
         return p0, alpha1, alpha2, epsilon_max, batch[0], batch[1]
 
-    def babcock_leighton_fn(self, p, b_1=0.6, w_1=0.2, b_2=1.0, w_2=0.8):
+    @staticmethod
+    def babcock_leighton_fn(p, b_1=0.6, w_1=0.2, b_2=1.0, w_2=0.8):
         f = 0.5 * (1.0 + erf((p - b_1) / w_1)) * (1.0 - erf((p - b_2) / w_2))
         return f
 
