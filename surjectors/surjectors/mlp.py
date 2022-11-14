@@ -2,7 +2,7 @@ import distrax
 import haiku as hk
 from jax import numpy as jnp
 
-from surjectors.surjectors.affine_coupling_funnel import Funnel
+from surjectors.surjectors.affine_masked_coupling_funnel import Funnel
 from surjectors.surjectors.lu_linear import LULinear
 
 

@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 from jax import numpy as jnp
 from surjectors.surjectors._transform import Transform
@@ -12,7 +12,7 @@ _valid_kinds = [
 ]
 
 
-class Surjector(Transform):
+class Surjector(Transform, ABC):
     """
     Surjector base class
     """

@@ -34,3 +34,4 @@ class Slice(Funnel):
     def forward(self, z, x=None):
         y, _ = self.forward_and_likelihood_contribution(z, x)
         return y
+
