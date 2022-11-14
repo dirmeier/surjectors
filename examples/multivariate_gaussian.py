@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from jax import numpy as jnp
 from jax import random
 
+from surjectors.bijectors.masked_coupling import MaskedCoupling
 from surjectors.surjectors.chain import Chain
 from surjectors.surjectors.slice import Slice
 from surjectors.distributions.transformed_distribution import (
@@ -35,18 +36,18 @@ def _get_sampler_and_loadings(rng_key, batch_size, n_dimension):
     def _fn(rng_key):
         z_sample_key, noise_sample_key = random.split(rng_key, 2)
         z = pz.sample(seed=z_sample_key, sample_shape=(batch_size,))
-        noise = +make_noise.sample(
+        noise = make_noise.sample(
             seed=noise_sample_key, sample_shape=(batch_size, n_dimension)
         )
 
-        # y = (loadings @ z.T).T + noise
-        y = jnp.concatenate([z, -z], axis=-1)
-        return y, z
+        y = (loadings @ z.T).T + noise
+        # y = jnp.concatenate([z, z] ,axis=-1)
+        return y, z, noise
 
     return _fn, loadings
 
 
-def _get_surjector(n_dimension, n_latent):
+def _get_slice_surjector(n_dimension, n_latent):
     def _bijector_conditioner(dim):
         return hk.Sequential(
             [
@@ -106,7 +107,7 @@ def _get_surjector(n_dimension, n_latent):
         mask = mask.astype(bool)
 
         for _ in range(2):
-            layer = distrax.MaskedCoupling(
+            layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
                 conditioner=_bijector_conditioner(n_dimension),
@@ -120,15 +121,15 @@ def _get_surjector(n_dimension, n_latent):
         mask = mask.astype(bool)
 
         for _ in range(2):
-            layer = distrax.MaskedCoupling(
+            layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
                 conditioner=_bijector_conditioner(n_latent),
             )
             layers.append(layer)
             mask = jnp.logical_not(mask)
-        # return Chain(layers)
-        return Slice(n_latent, _decoder_fn())
+        #return Slice(n_latent, _decoder_fn())
+        return Chain(layers)
 
     def _base_fn():
         base_distribution = distrax.Independent(
@@ -145,15 +146,17 @@ def _get_surjector(n_dimension, n_latent):
     return td
 
 
-def run(key=0, n_iter=1000, batch_size=64, n_data=10, n_latent=5):
+def train(key, surjector_fn, n_data, n_latent, batch_size, n_iter):
     rng_seq = hk.PRNGSequence(0)
     pyz, loadings = _get_sampler_and_loadings(next(rng_seq), batch_size, n_data)
-    flow = _get_surjector(n_data, n_latent)
+    flow = surjector_fn(n_data, n_latent)
 
     @jax.jit
-    def step(params, state, y_batch, rng):
+    def step(params, state, y_batch, noise_batch, rng):
         def loss_fn(params):
-            lp = flow.apply(params, rng, method="log_prob", y=y_batch)
+            lp = flow.apply(
+                params, rng, method="log_prob", y=y_batch, x=noise_batch
+            )
             return -jnp.sum(lp)
 
         loss, grads = jax.value_and_grad(loss_fn)(params)
@@ -161,25 +164,38 @@ def run(key=0, n_iter=1000, batch_size=64, n_data=10, n_latent=5):
         new_params = optax.apply_updates(params, updates)
         return loss, new_params, new_state
 
-    y_init, _ = pyz(random.fold_in(next(rng_seq), 0))
-    params = flow.init(random.PRNGKey(key), method="log_prob", y=y_init)
+    y_init, _, noise_init = pyz(random.fold_in(next(rng_seq), 0))
+    params = flow.init(
+        random.PRNGKey(key),
+        method="log_prob",
+        y=y_init,
+        x=noise_init
+    )
     adam = optax.adamw(0.001)
     state = adam.init(params)
 
     losses = [0] * n_iter
     for i in range(n_iter):
-        y_batch, _ = pyz(next(rng_seq))
-        loss, params, state = step(params, state, y_batch, next(rng_seq))
+        y_batch, _, noise_batch = pyz(next(rng_seq))
+        loss, params, state = step(params, state, y_batch, noise_batch,
+                                   next(rng_seq))
         losses[i] = loss
 
     losses = jnp.asarray(losses)
     plt.plot(losses)
     plt.show()
 
-    y_batch, z_batch = pyz(next(rng_seq))
-    y_pred = flow.apply(params, next(rng_seq), method="sample", y=y_batch)
+    y_batch, z_batch, noise_batch = pyz(next(rng_seq))
+    y_pred = flow.apply(
+        params, next(rng_seq), method="sample", x=noise_batch
+    )
     print(y_batch[:5, :])
     print(y_pred[:5, :])
+
+
+def run():
+    key = random.PRNGKey(0)
+    train(key, _get_slice_surjector, n_data, n_latent, batch_size, n_iter)
 
 
 if __name__ == "__main__":
