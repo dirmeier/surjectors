@@ -6,7 +6,7 @@ from surjectors.bijectors.masked_coupling import MaskedCoupling
 from surjectors.surjectors.funnel import Funnel
 
 
-class AffineCouplingFunnel(Funnel):
+class AffineMaskedCouplingInferenceFunnel(Funnel):
     def __init__(self, n_keep, decoder, conditioner):
         super().__init__(n_keep, decoder, conditioner, None, "inference_surjector")
 
@@ -25,9 +25,9 @@ class AffineCouplingFunnel(Funnel):
         )
 
     def inverse_and_likelihood_contribution(self, y, x=None):
+        # TODO: remote the conditioning here?
         faux, jac_det = self._inner_bijector(self._mask(y)).inverse_and_log_det(y, x)
-        z = faux[:, :self.n_keep]
-        z_condition = z
+        z_condition = z = faux[:, :self.n_keep]
         if x is not None:
             z_condition = jnp.concatenate([z, x], axis=-1)
         lc = self.decoder(z_condition).log_prob(y[:, self.n_keep:])
@@ -40,6 +40,7 @@ class AffineCouplingFunnel(Funnel):
         y_minus, jac_det = self.decoder(z_condition).sample_and_log_prob(seed=hk.next_rng_key())
         # TODO need to sort the indexes correctly (?)
         z_tilde = jnp.concatenate([z, y_minus], axis=-1)
+        # TODO: remote the conditioning here?
         y, lc = self._inner_bijector(self._mask(z_tilde)).forward_and_log_det(z_tilde, x)
         return y, lc + jac_det
 

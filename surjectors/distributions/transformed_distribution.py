@@ -1,11 +1,10 @@
 from typing import Tuple
 
 import chex
+import haiku as hk
 import jax
 import jax.numpy as jnp
-from chex import PRNGKey
 from distrax import Distribution
-import haiku as hk
 
 Array = chex.Array
 from surjectors.surjectors.surjector import Surjector

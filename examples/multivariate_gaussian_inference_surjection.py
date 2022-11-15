@@ -1,23 +1,21 @@
 import distrax
 import haiku as hk
 import jax
+import matplotlib.pyplot as plt
 import numpy as np
 import optax
-import matplotlib.pyplot as plt
-
+from jax import config
 from jax import numpy as jnp
 from jax import random
 
 from surjectors.bijectors.masked_coupling import MaskedCoupling
-from surjectors.surjectors.affine_masked_coupling_funnel import AffineCouplingFunnel
-from surjectors.surjectors.chain import Chain
-from surjectors.surjectors.funnel import Funnel
-from surjectors.surjectors.slice import Slice
 from surjectors.distributions.transformed_distribution import (
     TransformedDistribution,
 )
-
-from jax import config
+from surjectors.surjectors.affine_masked_coupling_inference_funnel import \
+    AffineMaskedCouplingInferenceFunnel
+from surjectors.surjectors.chain import Chain
+from surjectors.surjectors.slice import Slice
 
 config.update("jax_enable_x64", True)
 
@@ -215,7 +213,9 @@ def _get_funnel_surjector(n_dimension, n_latent):
             )
             layers.append(layer)
 
-        layers.append(AffineCouplingFunnel(n_latent, _decoder_fn(), _bijector_conditioner(n_dimension)))
+        layers.append(
+            AffineMaskedCouplingInferenceFunnel(n_latent, _decoder_fn(), _bijector_conditioner(n_dimension))
+        )
 
         mask = jnp.arange(0, np.prod(n_latent)) % 2
         mask = jnp.reshape(mask, n_latent)
@@ -229,8 +229,8 @@ def _get_funnel_surjector(n_dimension, n_latent):
             )
             layers.append(layer)
             mask = jnp.logical_not(mask)
-        #return Chain(layers)
-        return AffineCouplingFunnel(n_latent, _decoder_fn(), _bijector_conditioner(n_dimension))
+        return Chain(layers)
+        #return AffineCouplingFunnel(n_latent, _decoder_fn(), _bijector_conditioner(n_dimension))
 
     def _base_fn():
         base_distribution = distrax.Independent(

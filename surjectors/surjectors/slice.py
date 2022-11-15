@@ -1,19 +1,19 @@
+import distrax
+from chex import Array
 from jax import numpy as jnp
 import haiku as hk
 from surjectors.surjectors.funnel import Funnel
 
 
 class Slice(Funnel):
-    def __init__(
-        self, n_keep, decoder, encoder=None, kind="inference_surjector"
-    ):
-        super().__init__(n_keep, decoder, encoder, None, kind)
+    def __init__(self, n_keep, decoder):
+        super().__init__(n_keep, decoder, None, None, "inference_surkector")
 
     def split_input(self, input):
         spl = jnp.split(input, [self.n_keep], axis=-1)
         return spl
 
-    def inverse_and_likelihood_contribution(self, y, x = None):
+    def inverse_and_likelihood_contribution(self, y, x: Array=None):
         z, y_minus = self.split_input(y)
         z_condition = z
         if x is not None:
@@ -29,6 +29,7 @@ class Slice(Funnel):
             seed=hk.next_rng_key()
         )
         y = jnp.concatenate([z, y_minus], axis=-1)
+
         return y, lc
 
     def forward(self, z, x=None):
