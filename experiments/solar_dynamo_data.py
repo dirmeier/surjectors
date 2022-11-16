@@ -1,6 +1,6 @@
 from jax import random, lax
 from jax.scipy.special import erf
-
+import distrax
 
 class SolarDynamoSimulator:
     def __init__(self, **kwargs):
@@ -13,23 +13,23 @@ class SolarDynamoSimulator:
         self.alpha1 = kwargs.get("alpha1", None)
         self.alpha2 = kwargs.get("alpha2", None)
 
-    def sample(self, key, batclen_timeseries=1000):
+    def sample(self, key, batch_size, len_timeseries=1000):
         p_key, alpha1_key, alpha2_key, epsilon_key, key = random.split(key, 5)
-        p0 = random.normal(p_key) * self.p0_std + self.p0_mean
+        p0 = random.normal(p_key,  shape=(batch_size,)) * self.p0_std + self.p0_mean
         alpha1 = random.uniform(
-            alpha1_key, minval=self.alpha1_min, maxval=self.alpha1_max
+            alpha1_key, shape=(batch_size,), minval=self.alpha1_min, maxval=self.alpha1_max
         )
         alpha2 = random.uniform(
-            alpha2_key, minval=alpha1, maxval=self.alpha2_max
+            alpha2_key,  shape=(batch_size,), minval=alpha1, maxval=self.alpha2_max
         )
         epsilon_max = random.uniform(
-            epsilon_key, minval=0, maxval=self.epsilon_max
+            epsilon_key, shape=(batch_size,), minval=0, maxval=self.epsilon_max
         )
         batch = self._sample_timeseries(
-            key, p0, alpha1, alpha2, epsilon_max, len_timeseries
+            key, batch_size, p0, alpha1, alpha2, epsilon_max, len_timeseries
         )
 
-        return p0, alpha1, alpha2, epsilon_max, batch[0], batch[1]
+        return p0, alpha1, alpha2, epsilon_max, batch[0].T, batch[1].T
 
     @staticmethod
     def babcock_leighton_fn(p, b_1=0.6, w_1=0.2, b_2=1.0, w_2=0.8):
@@ -41,13 +41,13 @@ class SolarDynamoSimulator:
         return p
 
     def _sample_timeseries(
-        self, key, pn, alpha_min, alpha_max, epsilon_max, len_timeseries
+        self, key, batch_size, pn, alpha_min, alpha_max, epsilon_max, len_timeseries
     ):
-        a = random.uniform(
-            key, minval=alpha_min, maxval=alpha_max, shape=(len_timeseries,)
+        a = distrax.Uniform(alpha_min, alpha_max).sample(
+            seed=key, sample_shape=(len_timeseries,)
         )
-        e = random.uniform(
-            key, minval=0.0, maxval=epsilon_max, shape=(len_timeseries,)
+        e = distrax.Uniform(0.0, epsilon_max).sample(
+            seed=key, sample_shape=(len_timeseries,)
         )
 
         def _fn(fs, arrays):

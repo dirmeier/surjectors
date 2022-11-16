@@ -9,6 +9,7 @@ from jax import numpy as jnp
 from jax import random
 
 from surjectors.bijectors.masked_coupling import MaskedCoupling
+from surjectors.conditioners.mlp_conditioner import mlp_conditioner
 from surjectors.distributions.transformed_distribution import (
     TransformedDistribution,
 )
@@ -47,59 +48,31 @@ def _get_sampler_and_loadings(rng_key, batch_size, n_dimension):
     return _fn, loadings
 
 
+def _decoder_fn(n_dimension,  n_latent):
+    decoder_net = mlp_conditioner([32, 32, n_dimension - n_latent])
+
+    def _fn(z):
+        params = decoder_net(z)
+        mu, log_scale = jnp.split(params, 2, -1)
+        return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+
+    return _fn
+
+
+def _bijector_fn(params):
+    means, log_scales = jnp.split(params, 2, -1)
+    return distrax.ScalarAffine(means, jnp.exp(log_scales))
+
+
+def _base_distribution_fn(n_latent):
+    base_distribution = distrax.Independent(
+        distrax.Normal(jnp.zeros(n_latent), jnp.ones(n_latent)),
+        reinterpreted_batch_ndims=1,
+    )
+    return base_distribution
+
+
 def _get_slice_surjector(n_dimension, n_latent):
-    def _bijector_conditioner(dim):
-        return hk.Sequential(
-            [
-                hk.Linear(
-                    32,
-                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
-                    b_init=jnp.zeros,
-                ),
-                jax.nn.gelu,
-                hk.Linear(
-                    32,
-                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
-                    b_init=jnp.zeros,
-                ),
-                jax.nn.gelu,
-                hk.Linear(dim * 2),
-            ]
-        )
-
-    def _surjector_conditioner():
-        return hk.Sequential(
-            [
-                hk.Linear(
-                    16,
-                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
-                    b_init=jnp.zeros,
-                ),
-                jax.nn.gelu,
-                hk.Linear(
-                    16,
-                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
-                    b_init=jnp.zeros,
-                ),
-                jax.nn.gelu,
-                hk.Linear((n_dimension - n_latent) * 2),
-            ]
-        )
-
-    def _decoder_fn():
-        decoder_net = _surjector_conditioner()
-
-        def _fn(z):
-            params = decoder_net(z)
-            mu, log_scale = jnp.split(params, 2, -1)
-            return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
-
-        return _fn
-
-    def _bijector_fn(params):
-        means, log_scales = jnp.split(params, 2, -1)
-        return distrax.ScalarAffine(means, jnp.exp(log_scales))
-
     def _transformation_fn():
         layers = []
         mask = jnp.arange(0, np.prod(n_dimension)) % 2
@@ -110,11 +83,11 @@ def _get_slice_surjector(n_dimension, n_latent):
             layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
-                conditioner=_bijector_conditioner(n_dimension),
+                conditioner=mlp_conditioner([32, 32, n_dimension])
             )
             layers.append(layer)
 
-        layers.append(Slice(n_latent, _decoder_fn()))
+        layers.append(Slice(n_latent, _decoder_fn(n_dimension,  n_latent)))
 
         mask = jnp.arange(0, np.prod(n_latent)) % 2
         mask = jnp.reshape(mask, n_latent)
@@ -124,22 +97,15 @@ def _get_slice_surjector(n_dimension, n_latent):
             layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
-                conditioner=_bijector_conditioner(n_latent),
+                conditioner=mlp_conditioner([32, 32, n_latent]),
             )
             layers.append(layer)
             mask = jnp.logical_not(mask)
         # return Slice(n_latent, _decoder_fn())
         return Chain(layers)
 
-    def _base_fn():
-        base_distribution = distrax.Independent(
-            distrax.Normal(jnp.zeros(n_latent), jnp.ones(n_latent)),
-            reinterpreted_batch_ndims=1,
-        )
-        return base_distribution
-
     def _flow(method, **kwargs):
-        td = TransformedDistribution(_base_fn(), _transformation_fn())
+        td = TransformedDistribution(_base_distribution_fn(n_latent), _transformation_fn())
         return td(method, **kwargs)
 
     td = hk.transform(_flow)
@@ -147,58 +113,6 @@ def _get_slice_surjector(n_dimension, n_latent):
 
 
 def _get_funnel_surjector(n_dimension, n_latent):
-    def _bijector_conditioner(dim):
-        return hk.Sequential(
-            [
-                hk.Linear(
-                    32,
-                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
-                    b_init=jnp.zeros,
-                ),
-                jax.nn.gelu,
-                hk.Linear(
-                    32,
-                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
-                    b_init=jnp.zeros,
-                ),
-                jax.nn.gelu,
-                hk.Linear(dim * 2),
-            ]
-        )
-
-    def _surjector_conditioner():
-        return hk.Sequential(
-            [
-                hk.Linear(
-                    16,
-                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
-                    b_init=jnp.zeros,
-                ),
-                jax.nn.gelu,
-                hk.Linear(
-                    16,
-                    w_init=hk.initializers.TruncatedNormal(stddev=0.01),
-                    b_init=jnp.zeros,
-                ),
-                jax.nn.gelu,
-                hk.Linear((n_dimension - n_latent) * 2),
-            ]
-        )
-
-    def _decoder_fn():
-        decoder_net = _surjector_conditioner()
-
-        def _fn(z):
-            params = decoder_net(z)
-            mu, log_scale = jnp.split(params, 2, -1)
-            return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
-
-        return _fn
-
-    def _bijector_fn(params):
-        means, log_scales = jnp.split(params, 2, -1)
-        return distrax.ScalarAffine(means, jnp.exp(log_scales))
-
     def _transformation_fn():
         layers = []
         mask = jnp.arange(0, np.prod(n_dimension)) % 2
@@ -209,12 +123,12 @@ def _get_funnel_surjector(n_dimension, n_latent):
             layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
-                conditioner=_bijector_conditioner(n_dimension),
+                conditioner=mlp_conditioner([32, 32, n_dimension]),
             )
             layers.append(layer)
 
         layers.append(
-            AffineMaskedCouplingInferenceFunnel(n_latent, _decoder_fn(), _bijector_conditioner(n_dimension))
+            AffineMaskedCouplingInferenceFunnel(n_latent, _decoder_fn(n_dimension, n_latent), mlp_conditioner([32, 32, n_dimension]))
         )
 
         mask = jnp.arange(0, np.prod(n_latent)) % 2
@@ -225,22 +139,15 @@ def _get_funnel_surjector(n_dimension, n_latent):
             layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
-                conditioner=_bijector_conditioner(n_latent),
+                conditioner=mlp_conditioner([32, 32, n_latent]),
             )
             layers.append(layer)
             mask = jnp.logical_not(mask)
-        return Chain(layers)
         #return AffineCouplingFunnel(n_latent, _decoder_fn(), _bijector_conditioner(n_dimension))
-
-    def _base_fn():
-        base_distribution = distrax.Independent(
-            distrax.Normal(jnp.zeros(n_latent), jnp.ones(n_latent)),
-            reinterpreted_batch_ndims=1,
-        )
-        return base_distribution
+        return Chain(layers)
 
     def _flow(method, **kwargs):
-        td = TransformedDistribution(_base_fn(), _transformation_fn())
+        td = TransformedDistribution(_base_distribution_fn(n_latent), _transformation_fn())
         return td(method, **kwargs)
 
     td = hk.transform(_flow)
