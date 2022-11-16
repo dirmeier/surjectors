@@ -2,7 +2,12 @@ from jax import random, lax
 from jax.scipy.special import erf
 import distrax
 
+
 class SolarDynamoSimulator:
+    """Implements Eqn 2 and 3 of
+    FLUCTUATIONS IN BABCOCK-LEIGHTON DYNAMOS. II. REVISITING THE GNEVYSHEV-OHL RULE
+    https://iopscience.iop.org/article/10.1086/511177/pdf
+    """
     def __init__(self, **kwargs):
         self.p0_mean = kwargs.get("p0_mean", 1.0)
         self.p0_std = kwargs.get("p0_std", 1.0)
@@ -25,11 +30,11 @@ class SolarDynamoSimulator:
         epsilon_max = random.uniform(
             epsilon_key, shape=(batch_size,), minval=0, maxval=self.epsilon_max
         )
-        batch = self._sample_timeseries(
+        f, y, alpha, noise = self._sample_timeseries(
             key, batch_size, p0, alpha1, alpha2, epsilon_max, len_timeseries
         )
 
-        return p0, alpha1, alpha2, epsilon_max, batch[0].T, batch[1].T
+        return (p0, alpha1, alpha2, epsilon_max, f), y, alpha, noise
 
     @staticmethod
     def babcock_leighton_fn(p, b_1=0.6, w_1=0.2, b_2=1.0, w_2=0.8):
@@ -46,7 +51,7 @@ class SolarDynamoSimulator:
         a = distrax.Uniform(alpha_min, alpha_max).sample(
             seed=key, sample_shape=(len_timeseries,)
         )
-        e = distrax.Uniform(0.0, epsilon_max).sample(
+        noise = distrax.Uniform(0.0, epsilon_max).sample(
             seed=key, sample_shape=(len_timeseries,)
         )
 
@@ -57,5 +62,5 @@ class SolarDynamoSimulator:
             pn = self.babcock_leighton(pn, alpha, epsilon)
             return (f, pn), (f, pn)
 
-        _, pn = lax.scan(_fn, (pn, pn), (a, e))
-        return pn
+        _, pn = lax.scan(_fn, (pn, pn), (a, noise))
+        return pn[0].T, pn[1].T, a.T, noise.T

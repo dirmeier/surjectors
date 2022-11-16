@@ -9,7 +9,7 @@ from jax import numpy as jnp
 from jax import random
 
 from surjectors.bijectors.masked_coupling import MaskedCoupling
-from surjectors.conditioners.mlp_conditioner import mlp_conditioner
+from surjectors.conditioners.mlp import mlp_conditioner
 from surjectors.distributions.transformed_distribution import (
     TransformedDistribution,
 )
@@ -128,7 +128,11 @@ def _get_funnel_surjector(n_dimension, n_latent):
             layers.append(layer)
 
         layers.append(
-            AffineMaskedCouplingInferenceFunnel(n_latent, _decoder_fn(n_dimension, n_latent), mlp_conditioner([32, 32, n_dimension]))
+            AffineMaskedCouplingInferenceFunnel(
+                n_latent,
+                _decoder_fn(n_dimension, n_latent),
+                mlp_conditioner([32, 32, n_dimension])
+            )
         )
 
         mask = jnp.arange(0, np.prod(n_latent)) % 2
@@ -185,8 +189,7 @@ def train(key, surjector_fn, n_data, n_latent, batch_size, n_iter):
     losses = [0] * n_iter
     for i in range(n_iter):
         y_batch, _, noise_batch = pyz(next(rng_seq))
-        loss, params, state = step(params, state, y_batch, noise_batch,
-                                   next(rng_seq))
+        loss, params, state = step(params, state, y_batch, noise_batch, next(rng_seq))
         losses[i] = loss
 
     losses = jnp.asarray(losses)

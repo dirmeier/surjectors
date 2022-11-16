@@ -9,7 +9,7 @@ from jax import numpy as jnp
 from jax import random
 
 from surjectors.bijectors.masked_coupling import MaskedCoupling
-from surjectors.conditioners.mlp_conditioner import mlp_conditioner
+from surjectors.conditioners.mlp import mlp_conditioner
 from surjectors.distributions.transformed_distribution import (
     TransformedDistribution,
 )
@@ -163,7 +163,7 @@ def _get_funnel_surjector(n_dimension, n_latent):
 
 def train(key, surjector_fn, n_data, n_latent, batch_size, n_iter):
     rng_seq = hk.PRNGSequence(0)
-    pyz, loadings = _get_sampler_and_loadings(next(rng_seq), 2*batch_size, n_data)
+    pyz, loadings = _get_sampler_and_loadings(next(rng_seq), batch_size, n_data)
     flow = surjector_fn(n_data, n_latent)
 
     @jax.jit

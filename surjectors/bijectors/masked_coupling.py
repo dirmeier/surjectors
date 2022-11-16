@@ -10,8 +10,7 @@ from surjectors.distributions.transformed_distribution import Array
 class MaskedCoupling(distrax.MaskedCoupling):
     def __init__(self, mask: Array, conditioner, bijector,
                  event_ndims: Optional[int] = None, inner_event_ndims: int = 0):
-        super().__init__(mask, conditioner, bijector, event_ndims,
-                         inner_event_ndims)
+        super().__init__(mask, conditioner, bijector, event_ndims, inner_event_ndims)
 
     def forward_and_log_det(self, z: Array, x: Array = None) -> Tuple[Array, Array]:
         self._check_forward_input_shape(z)
