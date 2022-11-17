@@ -4,7 +4,6 @@ from typing import Optional
 
 import haiku as hk
 import jax
-import numpy as np
 
 
 @dataclasses.dataclass

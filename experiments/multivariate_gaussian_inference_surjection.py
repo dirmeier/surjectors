@@ -21,8 +21,11 @@ from surjectors.surjectors.slice import Slice
 config.update("jax_enable_x64", True)
 
 
-def _get_sampler_and_loadings(rng_key, batch_size, n_dimension):
-    pz_mean = jnp.array([-2.31, 0.421, 0.1, 3.21, -0.41])
+def _get_sampler(rng_key, batch_size, n_dimension, n_latent):
+    means_sample_key, rng_key = random.split(rng_key, 2)
+    pz_mean = distrax.Normal(0.0, 10.0).sample(
+        seed=means_sample_key, sample_shape=(n_latent)
+    )
     pz = distrax.MultivariateNormalDiag(
         loc=pz_mean, scale_diag=jnp.ones_like(pz_mean)
     )
@@ -87,12 +90,13 @@ def _get_slice_surjector(n_dimension, n_latent):
             )
             layers.append(layer)
 
-        layers.append(Slice(n_latent, _decoder_fn(n_dimension,  n_latent)))
+        layers.append(
+            Slice(n_latent, _decoder_fn(n_dimension,  n_latent))
+        )
 
         mask = jnp.arange(0, np.prod(n_latent)) % 2
         mask = jnp.reshape(mask, n_latent)
         mask = mask.astype(bool)
-
         for _ in range(2):
             layer = MaskedCoupling(
                 mask=mask,
@@ -101,7 +105,7 @@ def _get_slice_surjector(n_dimension, n_latent):
             )
             layers.append(layer)
             mask = jnp.logical_not(mask)
-        # return Slice(n_latent, _decoder_fn())
+
         return Chain(layers)
 
     def _flow(method, **kwargs):
@@ -126,6 +130,7 @@ def _get_funnel_surjector(n_dimension, n_latent):
                 conditioner=mlp_conditioner([32, 32, n_dimension]),
             )
             layers.append(layer)
+            mask = jnp.logical_not(mask)
 
         layers.append(
             AffineMaskedCouplingInferenceFunnel(
@@ -138,7 +143,6 @@ def _get_funnel_surjector(n_dimension, n_latent):
         mask = jnp.arange(0, np.prod(n_latent)) % 2
         mask = jnp.reshape(mask, n_latent)
         mask = mask.astype(bool)
-
         for _ in range(2):
             layer = MaskedCoupling(
                 mask=mask,
@@ -147,7 +151,7 @@ def _get_funnel_surjector(n_dimension, n_latent):
             )
             layers.append(layer)
             mask = jnp.logical_not(mask)
-        #return AffineCouplingFunnel(n_latent, _decoder_fn(), _bijector_conditioner(n_dimension))
+
         return Chain(layers)
 
     def _flow(method, **kwargs):
@@ -158,9 +162,33 @@ def _get_funnel_surjector(n_dimension, n_latent):
     return td
 
 
-def train(key, surjector_fn, n_data, n_latent, batch_size, n_iter):
-    rng_seq = hk.PRNGSequence(0)
-    pyz, loadings = _get_sampler_and_loadings(next(rng_seq), batch_size, n_data)
+def _get_bijector(n_dimension, n_latent):
+    def _transformation_fn():
+        layers = []
+        mask = jnp.arange(0, np.prod(n_dimension)) % 2
+        mask = jnp.reshape(mask, n_dimension)
+        mask = mask.astype(bool)
+
+        for _ in range(4):
+            layer = MaskedCoupling(
+                mask=mask,
+                bijector=_bijector_fn,
+                conditioner=mlp_conditioner([32, 32, n_dimension]),
+            )
+            layers.append(layer)
+            mask = jnp.logical_not(mask)
+
+        return Chain(layers)
+
+    def _flow(method, **kwargs):
+        td = TransformedDistribution(_base_distribution_fn(n_dimension), _transformation_fn())
+        return td(method, **kwargs)
+
+    td = hk.transform(_flow)
+    return td
+
+
+def train(rng_seq, sampler, surjector_fn, n_data, n_latent, batch_size, n_iter):
     flow = surjector_fn(n_data, n_latent)
 
     @jax.jit
@@ -176,9 +204,9 @@ def train(key, surjector_fn, n_data, n_latent, batch_size, n_iter):
         new_params = optax.apply_updates(params, updates)
         return loss, new_params, new_state
 
-    y_init, _, noise_init = pyz(random.fold_in(next(rng_seq), 0))
+    y_init, _, noise_init = sampler(next(rng_seq))
     params = flow.init(
-        random.PRNGKey(key),
+        next(rng_seq),
         method="log_prob",
         y=y_init,
         x=noise_init
@@ -188,7 +216,7 @@ def train(key, surjector_fn, n_data, n_latent, batch_size, n_iter):
 
     losses = [0] * n_iter
     for i in range(n_iter):
-        y_batch, _, noise_batch = pyz(next(rng_seq))
+        y_batch, _, noise_batch = sampler(next(rng_seq))
         loss, params, state = step(params, state, y_batch, noise_batch, next(rng_seq))
         losses[i] = loss
 
@@ -196,23 +224,37 @@ def train(key, surjector_fn, n_data, n_latent, batch_size, n_iter):
     plt.plot(losses)
     plt.show()
 
-    y_batch, z_batch, noise_batch = pyz(next(rng_seq))
-    y_pred = flow.apply(
-        params, next(rng_seq), method="sample", x=noise_batch
-    )
-    print(y_batch[:5, :])
-    print(y_pred[:5, :])
+    return flow, params
+
+
+def evaluate(rng_seq, params, model, sampler, batch_size, n_data):
+    y_batch, _, noise_batch = sampler(next(rng_seq))
+    lp = model.apply(params, next(rng_seq), method="log_prob", y=y_batch, x=noise_batch)
+    print("\tPPLP: {:.3f}".format(jnp.mean(lp)))
 
 
 def run():
-    train(
-        key=0,
-        surjector_fn=_get_funnel_surjector,
-        n_iter=2000,
-        batch_size=64,
-        n_data=10,
-        n_latent=5
-    )
+    n_iter = 2000
+    batch_size = 64
+    n_data, n_latent = 100, 75
+    sampler, _ = _get_sampler(random.PRNGKey(0), batch_size, n_data, n_latent)
+    for method, _fn in [
+        ["Slice", _get_slice_surjector],
+        ["Funnel", _get_funnel_surjector],
+        ["Bijector", _get_bijector]
+    ]:
+        print(f"Doing {method}")
+        rng_seq = hk.PRNGSequence(0)
+        model, params = train(
+            rng_seq=rng_seq,
+            sampler=sampler,
+            surjector_fn=_fn,
+            n_iter=n_iter,
+            batch_size=batch_size,
+            n_data=n_data,
+            n_latent=n_latent
+        )
+        evaluate(rng_seq, params, model, sampler, batch_size, n_data)
 
 
 if __name__ == "__main__":

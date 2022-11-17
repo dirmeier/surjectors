@@ -7,7 +7,7 @@ from surjectors.surjectors.funnel import Funnel
 
 class Slice(Funnel):
     def __init__(self, n_keep, decoder):
-        super().__init__(n_keep, decoder, None, None, "inference_surkector")
+        super().__init__(n_keep, decoder, None, None, "inference_surjector")
 
     def split_input(self, input):
         spl = jnp.split(input, [self.n_keep], axis=-1)

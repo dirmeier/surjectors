@@ -146,9 +146,7 @@ def _get_funnel_surjector(n_dimension, n_latent):
     return td
 
 
-def train(key, surjector_fn, n_data, n_latent, batch_size, n_iter):
-    rng_seq = hk.PRNGSequence(0)
-    sampler = _get_sampler()
+def train(rng_seq, sampler, surjector_fn, n_data, n_latent, batch_size, n_iter):
     flow = surjector_fn(n_data, n_latent)
 
     @jax.jit
@@ -180,22 +178,29 @@ def train(key, surjector_fn, n_data, n_latent, batch_size, n_iter):
     losses = jnp.asarray(losses)
     plt.plot(losses)
     plt.show()
+    return flow, params
 
+
+def evaluate(rng_seq, params, model, sampler, batch_size, n_data):
     _, y_batch, _, noise_batch = sampler(next(rng_seq), batch_size, n_data)
-    y_pred = flow.apply(params, next(rng_seq), method="sample")
-    print(y_batch[:5, :])
-    print(y_pred[:5, :])
+    lp = model.apply(params, next(rng_seq), method="log_prob", y=y_batch)
+    print("PPLP: {:.3f}".format(lp / batch_size))
 
 
 def run():
-    train(
-        key=0,
-        surjector_fn=_get_slice_surjector,
-        n_iter=2000,
-        batch_size=64,
-        n_data=100,
-        n_latent=110
-    )
+    sampler = _get_sampler()
+    for _fn in [_get_slice_surjector, _get_funnel_surjector]:
+        rng_seq = hk.PRNGSequence(0)
+        model, params = train(
+            rng_seq=rng_seq,
+            sampler=sampler,
+            surjector_fn=_fn,
+            n_iter=2000,
+            batch_size=64,
+            n_data=100,
+            n_latent=110
+        )
+        evaluate(rng_seq, params, model, sampler, 64, 100)
 
 
 if __name__ == "__main__":
