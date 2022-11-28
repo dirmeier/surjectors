@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
 
-import distrax
 from distrax._src.utils import jittable
 
 

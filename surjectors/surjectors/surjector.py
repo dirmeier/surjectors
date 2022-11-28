@@ -1,20 +1,27 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 from jax import numpy as jnp
-from surjectors.surjectors.transform import Transform
+from surjectors.surjectors._transform import Transform
 
 
-_valid_kinds = ["inference_surjector", "generative_surjector", "bijector"]
+_valid_kinds = [
+    "inference_surjector",
+    "generative_surjector",
+    "bijector",
+    "surjector",
+]
 
 
-class Surjector(Transform):
+class Surjector(Transform, ABC):
     """
     Surjector base class
     """
+
     def __init__(self, n_keep, decoder, encoder, kind, dtype=jnp.float32):
         if kind not in _valid_kinds:
             raise ValueError(
-                "'kind' argument needs to be either of: " "/".join(_valid_kinds)
+                "'kind' argument needs to be either of: "
+                + "/".join(_valid_kinds)
             )
         if kind == _valid_kinds[1] and encoder is None:
             raise ValueError(

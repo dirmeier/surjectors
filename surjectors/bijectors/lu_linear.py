@@ -7,8 +7,11 @@ from surjectors.surjectors.surjector import Surjector
 
 
 class LULinear(Surjector):
-    def __init__(self, n_keep, dtype=jnp.float32):
+    def __init__(self, n_keep, with_bias=False, dtype=jnp.float32):
         super().__init__(n_keep, None, None, "bijection", dtype)
+        if with_bias:
+            raise NotImplementedError()
+
         n_triangular_entries = ((n_keep - 1) * n_keep) // 2
 
         self._lower_indices = np.tril_indices(n_keep, k=-1)
@@ -51,4 +54,3 @@ class LULinear(Surjector):
 
     def forward_and_likelihood_contribution(self, z):
         pass
-
