@@ -115,7 +115,9 @@ def _get_funnel_surjector(n_dimension, n_latent):
 
         layers.append(
             AffineMaskedCouplingGenerativeFunnel(
-                n_dimension, _encoder_fn(n_latent, n_dimension),  mlp_conditioner(n_latent)
+                n_dimension,
+                _encoder_fn(n_latent, n_dimension),
+                mlp_conditioner(n_latent)
             )
         )
 
