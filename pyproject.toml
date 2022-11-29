@@ -14,7 +14,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.dependencies]
 python = "^3.9,<3.10"
 distrax = "^0.1.2"
-dm-haiku = "^0.0.8"
+dm-haiku = "^0.0.9"
 optax = "^0.1.3"
 
 
