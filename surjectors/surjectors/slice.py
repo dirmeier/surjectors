@@ -1,7 +1,7 @@
-import distrax
+import haiku as hk
 from chex import Array
 from jax import numpy as jnp
-import haiku as hk
+
 from surjectors.surjectors.funnel import Funnel
 
 
@@ -13,7 +13,7 @@ class Slice(Funnel):
         spl = jnp.split(input, [self.n_keep], axis=-1)
         return spl
 
-    def inverse_and_likelihood_contribution(self, y, x: Array=None):
+    def inverse_and_likelihood_contribution(self, y, x: Array = None):
         z, y_minus = self.split_input(y)
         z_condition = z
         if x is not None:

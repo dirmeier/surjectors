@@ -6,8 +6,9 @@ import jax
 import jax.numpy as jnp
 from distrax import Distribution
 
-Array = chex.Array
 from surjectors.surjectors.surjector import Surjector
+
+Array = chex.Array
 
 
 class TransformedDistribution:
@@ -22,7 +23,9 @@ class TransformedDistribution:
         _, lp = self.inverse_and_log_prob(y, x)
         return lp
 
-    def inverse_and_log_prob(self, y: Array, x: Array=None) -> Tuple[Array, Array]:
+    def inverse_and_log_prob(
+        self, y: Array, x: Array = None
+    ) -> Tuple[Array, Array]:
         x, lc = self.surjector.inverse_and_likelihood_contribution(y, x=x)
         lp_x = self.base_distribution.log_prob(x)
         lp = lp_x + lc
@@ -33,7 +36,9 @@ class TransformedDistribution:
             chex.assert_equal(sample_shape[0], x.shape[0])
         elif x is not None:
             sample_shape = (x.shape[0],)
-        z = self.base_distribution.sample(seed=hk.next_rng_key(), sample_shape=sample_shape)
+        z = self.base_distribution.sample(
+            seed=hk.next_rng_key(), sample_shape=sample_shape
+        )
         y = jax.vmap(self.surjector.forward)(z, x)
         return y
 

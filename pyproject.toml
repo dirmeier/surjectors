@@ -28,10 +28,12 @@ flake8-pyproject = "^1.1.0.post0"
 isort = "^5.10.1"
 mypy = "^0.971"
 bandit = "^1.7.4"
+pytest = "^7.2.0"
 
 
 [tool.black]
 line-length = 80
+extend-ignore = "E203"
 target-version = ['py39']
 exclude = '''
 /(
@@ -54,6 +56,6 @@ profile = "black"
 line_length = 80
 include_trailing_comma = true
 
-
 [tool.flake8]
 max-line-length = 80
+extend-ignore = ["E203", "W503"]

@@ -1,8 +1,8 @@
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 
 from jax import numpy as jnp
-from surjectors.surjectors._transform import Transform
 
+from surjectors.surjectors._transform import Transform
 
 _valid_kinds = [
     "inference_surjector",
