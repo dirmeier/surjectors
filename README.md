@@ -20,6 +20,9 @@ TODO
 
 ## Installation
 
+Make sure to have a working `JAX` installation. Depending whether you want to use CPU/GPU/TPU,
+please follow [these instructions](https://github.com/google/jax#installation).
+
 To install the latest GitHub <RELEASE>, just call the following on the command line:
 
 ```bash

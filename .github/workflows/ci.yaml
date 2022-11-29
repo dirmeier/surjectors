@@ -55,7 +55,7 @@ jobs:
         run: |
           pip install jaxlib jax
           poetry install
-      - name: Run examples
+      - name: Run tests
         run: |
           poetry run pytest -v --doctest-modules --cov=./surjectors --cov-report=xml surjectors tests
       - name: Copy file
