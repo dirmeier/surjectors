@@ -4,11 +4,10 @@ import chex
 import haiku as hk
 import jax
 import jax.numpy as jnp
+from chex import Array
 from distrax import Distribution
 
 from surjectors.surjectors.surjector import Surjector
-
-Array = chex.Array
 
 
 class TransformedDistribution:
@@ -26,10 +25,10 @@ class TransformedDistribution:
     def inverse_and_log_prob(
         self, y: Array, x: Array = None
     ) -> Tuple[Array, Array]:
-        x, lc = self.surjector.inverse_and_likelihood_contribution(y, x=x)
-        lp_x = self.base_distribution.log_prob(x)
-        lp = lp_x + lc
-        return x, lp
+        z, lc = self.surjector.inverse_and_likelihood_contribution(y, x=x)
+        lp_z = self.base_distribution.log_prob(z)
+        lp = lp_z + lc
+        return z, lp
 
     def sample(self, sample_shape=(), x: Array = None):
         if x is not None and len(sample_shape):

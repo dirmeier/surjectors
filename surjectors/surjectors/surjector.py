@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from chex import Array
 from jax import numpy as jnp
 
 from surjectors.surjectors._transform import Transform
@@ -35,11 +36,11 @@ class Surjector(Transform, ABC):
         self._n_keep = n_keep
 
     @abstractmethod
-    def inverse_and_likelihood_contribution(self, y):
+    def inverse_and_likelihood_contribution(self, y, x: Array = None):
         pass
 
     @abstractmethod
-    def forward_and_likelihood_contribution(self, z):
+    def forward_and_likelihood_contribution(self, z, x: Array = None):
         pass
 
     @property

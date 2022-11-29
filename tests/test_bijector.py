@@ -6,7 +6,6 @@ import optax
 from jax import numpy as jnp
 from jax import random
 
-from conftest import sampler
 from surjectors.bijectors.masked_coupling import MaskedCoupling
 from surjectors.conditioners.mlp import mlp_conditioner
 from surjectors.distributions.transformed_distribution import (
@@ -15,7 +14,7 @@ from surjectors.distributions.transformed_distribution import (
 from surjectors.surjectors.chain import Chain
 
 
-def _decoder_fn(n_dimension,  n_latent):
+def _decoder_fn(n_dimension, n_latent):
     decoder_net = mlp_conditioner([32, 32, n_dimension - n_latent])
 
     def _fn(z):
@@ -58,14 +57,18 @@ def _get_bijector(n_dimension, n_latent):
         return Chain(layers)
 
     def _flow(method, **kwargs):
-        td = TransformedDistribution(_base_distribution_fn(n_dimension), _transformation_fn())
+        td = TransformedDistribution(
+            _base_distribution_fn(n_dimension), _transformation_fn()
+        )
         return td(method, **kwargs)
 
     td = hk.transform(_flow)
     return td
 
 
-def _train(rng_seq, sampler, surjector_fn, n_data, n_latent, batch_size, n_iter):
+def _train(
+    rng_seq, sampler, surjector_fn, n_data, n_latent, batch_size, n_iter
+):
     flow = surjector_fn(n_data, n_latent)
 
     @jax.jit
@@ -82,19 +85,16 @@ def _train(rng_seq, sampler, surjector_fn, n_data, n_latent, batch_size, n_iter)
         return loss, new_params, new_state
 
     y_init, _, noise_init = sampler(next(rng_seq))
-    params = flow.init(
-        next(rng_seq),
-        method="log_prob",
-        y=y_init,
-        x=noise_init
-    )
+    params = flow.init(next(rng_seq), method="log_prob", y=y_init, x=noise_init)
     adam = optax.adamw(0.001)
     state = adam.init(params)
 
     losses = [0] * n_iter
     for i in range(n_iter):
         y_batch, _, noise_batch = sampler(next(rng_seq))
-        loss, params, state = step(params, state, y_batch, noise_batch, next(rng_seq))
+        loss, params, state = step(
+            params, state, y_batch, noise_batch, next(rng_seq)
+        )
         losses[i] = loss
 
     return params, flow
@@ -102,10 +102,12 @@ def _train(rng_seq, sampler, surjector_fn, n_data, n_latent, batch_size, n_iter)
 
 def _evaluate(rng_seq, params, model, sampler):
     y_batch, _, noise_batch = sampler(next(rng_seq))
-    model.apply(params, next(rng_seq), method="log_prob", y=y_batch, x=noise_batch)
+    model.apply(
+        params, next(rng_seq), method="log_prob", y=y_batch, x=noise_batch
+    )
 
 
-def test_bijector():
+def test_bijector(sampler):
     n_batch, n_data, n_latent = 64, 10, 5
     sampling_fn, _ = sampler(random.PRNGKey(0), n_batch, n_data, n_latent)
     rng_seq = hk.PRNGSequence(0)
@@ -116,6 +118,6 @@ def test_bijector():
         n_iter=5,
         batch_size=n_batch,
         n_data=n_data,
-        n_latent=n_latent
+        n_latent=n_latent,
     )
     _evaluate(rng_seq, params, flow, sampling_fn)

@@ -4,18 +4,17 @@ import jax
 import numpy as np
 import optax
 from jax import numpy as jnp
-from jax import random
 
 from surjectors.bijectors.masked_coupling import MaskedCoupling
 from surjectors.conditioners.mlp import mlp_conditioner
 from surjectors.distributions.transformed_distribution import (
     TransformedDistribution,
 )
-from surjectors.surjectors.affine_masked_coupling_generative_funnel import \
-    AffineMaskedCouplingGenerativeFunnel
+from surjectors.surjectors.affine_masked_coupling_generative_funnel import (
+    AffineMaskedCouplingGenerativeFunnel,
+)
 from surjectors.surjectors.augment import Augment
 from surjectors.surjectors.chain import Chain
-from conftest import sampler
 
 
 def _encoder_fn(n_latent, n_dimension):
@@ -57,9 +56,7 @@ def _get_slice_surjector(n_dimension, n_latent):
             )
             layers.append(layer)
 
-        layers.append(
-            Augment(n_dimension, _encoder_fn(n_latent, n_dimension))
-        )
+        layers.append(Augment(n_dimension, _encoder_fn(n_latent, n_dimension)))
 
         mask = jnp.arange(0, np.prod(n_latent)) % 2
         mask = jnp.reshape(mask, n_latent)
@@ -75,7 +72,9 @@ def _get_slice_surjector(n_dimension, n_latent):
         return Chain(layers)
 
     def _flow(method, **kwargs):
-        td = TransformedDistribution(_base_distribution_fn(n_latent), _transformation_fn())
+        td = TransformedDistribution(
+            _base_distribution_fn(n_latent), _transformation_fn()
+        )
         return td(method, **kwargs)
 
     td = hk.transform(_flow)
@@ -99,8 +98,9 @@ def _get_funnel_surjector(n_dimension, n_latent):
 
         layers.append(
             AffineMaskedCouplingGenerativeFunnel(
-                n_dimension, _encoder_fn(n_latent, n_dimension),
-                mlp_conditioner([32, 32, n_latent])
+                n_dimension,
+                _encoder_fn(n_latent, n_dimension),
+                mlp_conditioner([32, 32, n_latent]),
             )
         )
 
@@ -119,22 +119,24 @@ def _get_funnel_surjector(n_dimension, n_latent):
         return Chain(layers)
 
     def _flow(method, **kwargs):
-        td = TransformedDistribution(_base_distribution_fn(n_latent), _transformation_fn())
+        td = TransformedDistribution(
+            _base_distribution_fn(n_latent), _transformation_fn()
+        )
         return td(method, **kwargs)
 
     td = hk.transform(_flow)
     return td
 
 
-def _train(rng_seq, sampler, surjector_fn, n_data, n_latent, batch_size, n_iter):
+def _train(
+    rng_seq, sampler, surjector_fn, n_data, n_latent, batch_size, n_iter
+):
     flow = surjector_fn(n_data, n_latent)
 
     @jax.jit
     def step(params, state, y_batch, noise_batch, rng):
         def loss_fn(params):
-            lp = flow.apply(
-                params, rng, method="log_prob", y=y_batch
-            )
+            lp = flow.apply(params, rng, method="log_prob", y=y_batch)
             return -jnp.sum(lp)
 
         loss, grads = jax.value_and_grad(loss_fn)(params)
@@ -143,16 +145,16 @@ def _train(rng_seq, sampler, surjector_fn, n_data, n_latent, batch_size, n_iter)
         return loss, new_params, new_state
 
     y_init, _, noise_init = sampler(next(rng_seq))
-    params = flow.init(
-        next(rng_seq), method="log_prob", y=y_init
-    )
+    params = flow.init(next(rng_seq), method="log_prob", y=y_init)
     adam = optax.adamw(0.001)
     state = adam.init(params)
 
     losses = [0] * n_iter
     for i in range(n_iter):
         y_batch, _, noise_batch = sampler(next(rng_seq))
-        loss, params, state = step(params, state, y_batch, noise_batch, next(rng_seq))
+        loss, params, state = step(
+            params, state, y_batch, noise_batch, next(rng_seq)
+        )
         losses[i] = loss
 
     return params, flow
@@ -163,7 +165,7 @@ def _evaluate(rng_seq, params, model, sampler):
     model.apply(params, next(rng_seq), method="log_prob", y=y_batch)
 
 
-def test_slice():
+def test_slice(sampler):
     rng_seq = hk.PRNGSequence(0)
     n_batch, n_data, n_latent = 64, 5, 10
     sampling_fn, _ = sampler(next(rng_seq), n_batch, n_data, n_latent)
@@ -174,12 +176,12 @@ def test_slice():
         n_iter=5,
         batch_size=n_batch,
         n_data=n_data,
-        n_latent=n_latent
+        n_latent=n_latent,
     )
     _evaluate(rng_seq, params, flow, sampling_fn)
 
 
-def test_funnel():
+def test_funnel(sampler):
     rng_seq = hk.PRNGSequence(0)
     n_batch, n_data, n_latent = 64, 5, 10
     sampling_fn, _ = sampler(next(rng_seq), n_batch, n_data, n_latent)
@@ -190,7 +192,6 @@ def test_funnel():
         n_iter=5,
         batch_size=n_batch,
         n_data=n_data,
-        n_latent=n_latent
+        n_latent=n_latent,
     )
     _evaluate(rng_seq, params, flow, sampling_fn)
-
