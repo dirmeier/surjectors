@@ -2,8 +2,8 @@ import distrax
 import haiku as hk
 from jax import numpy as jnp
 
+from surjectors.bijectors.lu_linear import LULinear
 from surjectors.surjectors.affine_masked_coupling_inference_funnel import Funnel
-from surjectors.surjectors.lu_linear import LULinear
 
 
 class MLP(Funnel, hk.Module):

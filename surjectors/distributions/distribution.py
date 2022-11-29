@@ -1,6 +1,3 @@
-import distrax
-
-
 class Distribution:
     def __init__(self, base, flow):
         self.flow = flow
