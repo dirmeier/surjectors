@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import chex
+import distrax
 import haiku as hk
 import jax
 import jax.numpy as jnp
@@ -25,7 +26,10 @@ class TransformedDistribution:
     def inverse_and_log_prob(
         self, y: Array, x: Array = None
     ) -> Tuple[Array, Array]:
-        z, lc = self.surjector.inverse_and_likelihood_contribution(y, x=x)
+        if isinstance(self.surjector, distrax.Bijector):
+            z, lc = self.surjector.inverse_and_log_det(y)
+        else:
+            z, lc = self.surjector.inverse_and_likelihood_contribution(y, x=x)
         lp_z = self.base_distribution.log_prob(z)
         lp = lp_z + lc
         return z, lp

@@ -19,9 +19,10 @@ class Chain(Surjector):
     def _inverse_and_log_contribution_dispatch(surjector, y, x):
         if isinstance(surjector, Surjector):
             fn = getattr(surjector, "inverse_and_likelihood_contribution")
+            z, lc = fn(y, x)
         else:
             fn = getattr(surjector, "inverse_and_log_det")
-        z, lc = fn(y, x)
+            z, lc = fn(y)
         return z, lc
 
     def forward_and_likelihood_contribution(self, z, x=None):
@@ -35,9 +36,10 @@ class Chain(Surjector):
     def _forward_and_log_contribution_dispatch(surjector, y, x):
         if isinstance(surjector, Surjector):
             fn = getattr(surjector, "forward_and_likelihood_contribution")
+            z, lc = fn(y, x)
         else:
             fn = getattr(surjector, "forward_and_log_det")
-        z, lc = fn(y, x)
+            z, lc = fn(y)
         return z, lc
 
     def forward(self, z, x=None):
