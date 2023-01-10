@@ -56,7 +56,7 @@ jobs:
           pip install jaxlib jax
       - name: Run tests
         run: |
-          hatch -e dev run pytest -v --doctest-modules --cov=./surjectors --cov-report=xml surjectors tests
+          hatch run test
 #      - name: Copy file
 #        run: |
 #          cp coverage.xml cobertura.xml
