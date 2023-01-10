@@ -54,7 +54,6 @@ jobs:
       - name: Build package
         run: |
           pip install jaxlib jax
-          hatch install
       - name: Run tests
         run: |
           hatch -e dev run pytest -v --doctest-modules --cov=./surjectors --cov-report=xml surjectors tests
