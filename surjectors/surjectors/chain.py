@@ -21,8 +21,9 @@ class Chain(Surjector):
             fn = getattr(surjector, "inverse_and_likelihood_contribution")
             z, lc = fn(y, x)
         else:
+            # TODO: not correct this
             fn = getattr(surjector, "inverse_and_log_det")
-            z, lc = fn(y)
+            z, lc = fn(y, x)
         return z, lc
 
     def forward_and_likelihood_contribution(self, z, x=None):

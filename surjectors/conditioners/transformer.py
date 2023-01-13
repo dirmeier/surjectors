@@ -77,6 +77,6 @@ def transformer_conditioner(
         num_heads, num_layers, key_size, dropout_rate, widening_factor
     )
     transformer = _AutoregressiveTransformerEncoder(
-        linear, encoder, output_size * 2
+        linear, encoder, output_size
     )
     return transformer
