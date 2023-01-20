@@ -18,12 +18,14 @@ class Chain(Surjector):
     @staticmethod
     def _inverse_and_log_contribution_dispatch(surjector, y, x):
         if isinstance(surjector, Surjector):
-            fn = getattr(surjector, "inverse_and_likelihood_contribution")
+            if hasattr(surjector, "inverse_and_likelihood_contribution"):
+                fn = getattr(surjector, "inverse_and_likelihood_contribution")
+            else:
+                fn = getattr(surjector, "inverse_and_log_det")
             z, lc = fn(y, x)
         else:
-            # TODO: not correct this
             fn = getattr(surjector, "inverse_and_log_det")
-            z, lc = fn(y, x)
+            z, lc = fn(y)
         return z, lc
 
     def forward_and_likelihood_contribution(self, z, x=None):

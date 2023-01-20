@@ -41,18 +41,20 @@ exclude = [
 
 [tool.hatch.envs.default]
 dependencies = [
-    "pre-commit>=2.20.0",
+    "bandit>=1.7.4",
     "black>=22.8.0",
     "flake8>=5.0.4",
     "flake8-pyproject>=1.1.0.post0",
     "isort>=5.10.1",
     "mypy>=0.971",
-    "bandit>=1.7.4",
+    "pre-commit>=2.20.0",
+    "pylint>=2.15.10",
     "pytest>=7.2.0",
     "pytest-cov>=4.0.0"
 ]
 
 [tool.hatch.envs.default.scripts]
+lint = 'pylint surjectors tests examples'
 test = 'pytest -v --doctest-modules --cov=./surjectors --cov-report=xml surjectors tests'
 
 [tool.black]
@@ -83,3 +85,6 @@ include_trailing_comma = true
 [tool.flake8]
 max-line-length = 80
 extend-ignore = ["E203", "W503"]
+per-file-ignores = [
+    '__init__.py:F401',
+]

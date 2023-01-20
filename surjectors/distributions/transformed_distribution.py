@@ -26,6 +26,11 @@ class TransformedDistribution:
     def inverse_and_log_prob(
         self, y: Array, x: Array = None
     ) -> Tuple[Array, Array]:
+        if x is not None:
+            chex.assert_equal_rank([y, x])
+            chex.assert_axis_dimension(y, 0, x.shape[0])
+            chex.assert_axis_dimension(y, 1, x.shape[1])
+
         if isinstance(self.surjector, distrax.Bijector):
             z, lc = self.surjector.inverse_and_log_det(y)
         else:
