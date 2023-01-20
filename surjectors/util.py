@@ -9,7 +9,12 @@ from jax import random
 named_dataset = namedtuple("named_dataset", "y x")
 
 
+# pylint: disable=too-few-public-methods
 class _DataLoader:
+    """
+    Dataloader class
+    """
+
     def __init__(self, num_batches, idxs, get_batch):
         self.num_batches = num_batches
         self.idxs = idxs
@@ -21,11 +26,29 @@ class _DataLoader:
         return self.get_batch(idx, idxs)
 
 
-def make_alternating_binary_mask(dim, is_even):
-    mask = jnp.arange(0, np.prod(dim)) % 2
-    mask = jnp.reshape(mask, dim)
+def make_alternating_binary_mask(n_dim: int, even_idx_as_true: bool = False):
+    """
+    Create a binary masked array
+
+    Parameters
+    ----------
+    n_dim: int
+        length of the masked array to be created
+    even_idx_as_true: bool
+        a boolean indicating which indices are set to zero.
+        If even_idx_as_true=True sets all even indices [0, 2, 4, ...]
+        to True
+
+    Returns
+    -------
+    jnp.ndarray
+        boolean masked array where every even or uneven index is True
+    """
+
+    mask = jnp.arange(0, np.prod(n_dim)) % 2
+    mask = jnp.reshape(mask, n_dim)
     mask = mask.astype(bool)
-    if not is_even:
+    if even_idx_as_true:
         mask = jnp.logical_not(mask)
     return mask
 
@@ -33,6 +56,26 @@ def make_alternating_binary_mask(dim, is_even):
 def as_batch_iterator(
     rng_key: chex.PRNGKey, data: named_dataset, batch_size, shuffle
 ):
+    """
+    Create a batch iterator for a data set
+
+    Parameters
+    ----------
+    rng_key: chex.PRNGKey
+        a JAX/Chex random key
+    data: named_dataset
+        a data set for which an iterator is created
+    batch_size: int
+        size of each batch of data that is returned by the iterator
+    shuffle: bool
+        if true shuffles the data before creating batches
+
+    Returns
+    -------
+    _DataLoader
+        a data loader object
+    """
+
     n = data.y.shape[0]
     if n < batch_size:
         num_batches = 1
