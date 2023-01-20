@@ -2,6 +2,11 @@ from surjectors.surjectors.surjector import Surjector
 
 
 class Chain(Surjector):
+    """
+    Chain of surjection flows
+
+    """
+
     def __init__(self, surjectors):
         super().__init__(None, None, None, "surjector")
         self._surjectors = surjectors

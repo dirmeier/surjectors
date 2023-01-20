@@ -39,22 +39,20 @@ exclude = [
     "/.pre-commit-config.yaml"
 ]
 
-[tool.hatch.envs.default]
+[tool.hatch.envs.examples]
 dependencies = [
-    "bandit>=1.7.4",
-    "black>=22.8.0",
-    "flake8>=5.0.4",
-    "flake8-pyproject>=1.1.0.post0",
-    "isort>=5.10.1",
-    "mypy>=0.971",
-    "pre-commit>=2.20.0",
+    "matplotlib>=3.6.1"
+]
+
+[tool.hatch.envs.test]
+dependencies = [
     "pylint>=2.15.10",
     "pytest>=7.2.0",
     "pytest-cov>=4.0.0"
 ]
 
-[tool.hatch.envs.default.scripts]
-lint = 'pylint surjectors tests examples'
+[tool.hatch.envs.test.scripts]
+lint = 'pylint surjectors'
 test = 'pytest -v --doctest-modules --cov=./surjectors --cov-report=xml surjectors tests'
 
 [tool.black]
@@ -88,3 +86,8 @@ extend-ignore = ["E203", "W503"]
 per-file-ignores = [
     '__init__.py:F401',
 ]
+
+[tool.pylint.messages_control]
+disable = """
+invalid-name,missing-module-docstring,R0801
+"""

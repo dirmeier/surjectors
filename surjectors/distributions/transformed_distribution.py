@@ -12,6 +12,11 @@ from surjectors.surjectors.surjector import Surjector
 
 
 class TransformedDistribution:
+    """
+    Distribution of a random variable transformed by a surjective or
+    bijectiive function
+    """
+
     def __init__(self, base_distribution: Distribution, surjector: Surjector):
         self.base_distribution = base_distribution
         self.surjector = surjector
@@ -20,6 +25,22 @@ class TransformedDistribution:
         return getattr(self, method)(**kwargs)
 
     def log_prob(self, y: Array, x: Array = None) -> Array:
+        """
+        Calculate the log probabilisty of an event conditional on another event
+
+        Parameters
+        ----------
+        y: jnp.ndarray
+            event for which the log probability is computed
+        x: Optional[jnp.ndarray]
+            optional event that is used to condition
+
+        Returns
+        -------
+        jnp.ndarray
+            array of floats of log probabilities
+        """
+
         _, lp = self.inverse_and_log_prob(y, x)
         return lp
 

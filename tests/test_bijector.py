@@ -49,7 +49,7 @@ def _get_bijector(n_dimension, n_latent):
             layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
-                conditioner=mlp_conditioner([32, 32, n_dimension]),
+                conditioner=mlp_conditioner([32, 32, n_dimension * 2]),
             )
             layers.append(layer)
             mask = jnp.logical_not(mask)

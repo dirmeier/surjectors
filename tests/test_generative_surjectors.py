@@ -18,7 +18,7 @@ from surjectors.surjectors.chain import Chain
 
 
 def _encoder_fn(n_latent, n_dimension):
-    decoder_net = mlp_conditioner([32, 32, n_latent - n_dimension])
+    decoder_net = mlp_conditioner([32, 32, (n_latent - n_dimension) * 2])
 
     def _fn(z):
         params = decoder_net(z)
@@ -52,7 +52,7 @@ def _get_slice_surjector(n_dimension, n_latent):
             layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
-                conditioner=mlp_conditioner([32, 32, n_dimension]),
+                conditioner=mlp_conditioner([32, 32, n_dimension * 2]),
             )
             layers.append(layer)
 
@@ -65,7 +65,7 @@ def _get_slice_surjector(n_dimension, n_latent):
             layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
-                conditioner=mlp_conditioner([32, 32, n_latent]),
+                conditioner=mlp_conditioner([32, 32, n_latent * 2]),
             )
             layers.append(layer)
             mask = jnp.logical_not(mask)
@@ -92,7 +92,7 @@ def _get_funnel_surjector(n_dimension, n_latent):
             layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
-                conditioner=mlp_conditioner([32, 32, n_dimension]),
+                conditioner=mlp_conditioner([32, 32, n_dimension * 2]),
             )
             layers.append(layer)
 
@@ -100,7 +100,7 @@ def _get_funnel_surjector(n_dimension, n_latent):
             AffineMaskedCouplingGenerativeFunnel(
                 n_dimension,
                 _encoder_fn(n_latent, n_dimension),
-                mlp_conditioner([32, 32, n_latent]),
+                mlp_conditioner([32, 32, n_latent * 2]),
             )
         )
 
@@ -111,7 +111,7 @@ def _get_funnel_surjector(n_dimension, n_latent):
             layer = MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
-                conditioner=mlp_conditioner([32, 32, n_latent]),
+                conditioner=mlp_conditioner([32, 32, n_latent * 2]),
             )
             layers.append(layer)
             mask = jnp.logical_not(mask)
