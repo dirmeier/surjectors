@@ -5,9 +5,10 @@ from distrax._src.utils import math
 from jax import numpy as jnp
 
 from surjectors.distributions.transformed_distribution import Array
+from surjectors.surjectors.surjector import Surjector
 
 
-class MaskedCoupling(distrax.MaskedCoupling):
+class MaskedCoupling(distrax.MaskedCoupling, Surjector):
     def __init__(
         self,
         mask: Array,
@@ -55,3 +56,9 @@ class MaskedCoupling(distrax.MaskedCoupling):
             self._event_ndims - self._inner_event_ndims,
         )
         return z, logdet
+
+    def inverse_and_likelihood_contribution(self, y, x: Array = None):
+        return self.inverse_and_log_det(y, x)
+
+    def forward_and_likelihood_contribution(self, z, x: Array = None):
+        return self.forward_and_log_det(z, x)

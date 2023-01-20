@@ -1,2 +1,0 @@
-class ConditionalDistribution:
-    pass
