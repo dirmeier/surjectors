@@ -13,6 +13,7 @@ _valid_kinds = [
 ]
 
 
+# pylint: disable=too-many-arguments
 class Surjector(Transform, ABC):
     """
     Surjector base class
@@ -36,25 +37,35 @@ class Surjector(Transform, ABC):
         self._n_keep = n_keep
 
     @abstractmethod
-    def inverse_and_likelihood_contribution(self, y, x: Array = None):
+    def inverse_and_likelihood_contribution(self, y: Array, **kwargs):
         pass
 
     @abstractmethod
-    def forward_and_likelihood_contribution(self, z, x: Array = None):
+    def forward_and_likelihood_contribution(self, z: Array, **kwargs):
         pass
 
     @property
     def n_keep(self):
+        """
+        Returns the Number of elements of the inverse transformation to keep
+        """
+
         return self._n_keep
 
     @property
+    def dtype(self):
+        """Returns the dtype of the transformation"""
+
+        return self._dtype
+
+    @property
     def decoder(self):
+        """Returns the decoder network"""
+
         return self._decoder
 
     @property
     def encoder(self):
-        return self._encoder
+        """Returns the encoder network"""
 
-    @property
-    def dtype(self):
-        return self._dtype
+        return self._encoder

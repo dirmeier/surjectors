@@ -64,6 +64,7 @@ class _AutoregressiveTransformerEncoder(hk.Module):
         return hk.Linear(self.output_size)(h)
 
 
+# pylint: disable=too-many-arguments
 def transformer_conditioner(
     output_size,
     num_heads=2,
@@ -72,6 +73,15 @@ def transformer_conditioner(
     dropout_rate=0.1,
     widening_factor=4,
 ):
+    """
+    Create a conditioner network based on a transformer
+
+    Returns
+    -------
+    hk.Module
+        a transformable haiku neural network module
+    """
+
     linear = hk.Linear(key_size * num_heads)
     encoder = _EncoderLayer(
         num_heads, num_layers, key_size, dropout_rate, widening_factor

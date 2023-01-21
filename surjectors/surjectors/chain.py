@@ -11,7 +11,7 @@ class Chain(Surjector):
         super().__init__(None, None, None, "surjector")
         self._surjectors = surjectors
 
-    def inverse_and_likelihood_contribution(self, y, x=None):
+    def inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
         z, lcs = self._inverse_and_log_contribution_dispatch(
             self._surjectors[0], y, x
         )
@@ -33,7 +33,7 @@ class Chain(Surjector):
             z, lc = fn(y)
         return z, lc
 
-    def forward_and_likelihood_contribution(self, z, x=None):
+    def forward_and_likelihood_contribution(self, z, x=None, **kwargs):
         y, log_det = self._surjectors[-1].forward_and_log_det(z, x)
         for surjector in reversed(self._surjectors[:-1]):
             y, lc = self._forward_and_log_contribution_dispatch(surjector, y, x)

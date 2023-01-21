@@ -26,7 +26,7 @@ class TransformedDistribution:
 
     def log_prob(self, y: Array, x: Array = None) -> Array:
         """
-        Calculate the log probabilisty of an event conditional on another event
+        Calculate the log probability of an event conditional on another event
 
         Parameters
         ----------
@@ -47,6 +47,24 @@ class TransformedDistribution:
     def inverse_and_log_prob(
         self, y: Array, x: Array = None
     ) -> Tuple[Array, Array]:
+        """
+        Compute the inverse transformation and the log probability of an event
+        conditional on another event
+
+        Parameters
+        ----------
+        y: jnp.ndarray
+            event for which the inverse and log probability is computed
+        x: Optional[jnp.ndarray]
+            optional event that is used to condition
+
+        Returns
+        -------
+        Tuple[jnp.ndarray, jnp.ndarray]
+            tuple of two arrays of floats. The first one is the inverse
+            transformation, the second one is the log probability
+        """
+
         if x is not None:
             chex.assert_equal_rank([y, x])
             chex.assert_axis_dimension(y, 0, x.shape[0])
@@ -61,7 +79,24 @@ class TransformedDistribution:
         return z, lp
 
     def sample(self, sample_shape=(), x: Array = None):
-        if x is not None and len(sample_shape):
+        """
+        Sample an event
+
+        Parameters
+        ----------
+        sample_shape: Tuple[int]
+            the size of the sample to be drawn
+        x: Optional[jnp.ndarray]
+            optional event that is used to condition the samples. If x is given
+            sample_shape is ignored
+
+        Returns
+        -------
+        jnp.ndarray
+            a sample from the transformed distribution
+        """
+
+        if x is not None and len(sample_shape) > 0:
             chex.assert_equal(sample_shape[0], x.shape[0])
         elif x is not None:
             sample_shape = (x.shape[0],)
@@ -71,7 +106,24 @@ class TransformedDistribution:
         y = jax.vmap(self.surjector.forward)(z, x)
         return y
 
-    def sample_and_log_prob(self, sample_shape=(1,), x: Array = None):
+    def sample_and_log_prob(self, sample_shape=(), x: Array = None):
+        """
+        Sample an event and compute its log probability
+
+        Parameters
+        ----------
+        sample_shape: Tuple[int]
+            the size of the sample to be drawn
+        x: Optional[jnp.ndarray]
+            optional event that is used to condition the samples. If x is given
+            sample_shape is ignored
+
+        Returns
+        -------
+        Tuple[jnp.ndarray, jnp.ndarray]
+            tuple of two arrays of floats. The first one is the drawn sample
+            transformation, the second one is its log probability
+        """
         z, lp_z = self.base_distribution.sample_and_log_prob(
             seed=hk.next_rng_key(), sample_shape=sample_shape, x=x
         )
