@@ -14,10 +14,11 @@ class Slice(Funnel):
         super().__init__(n_keep, decoder, None, None, "inference_surjector")
 
     def split_input(self, array):
+        """Split an array"""
         spl = jnp.split(array, [self.n_keep], axis=-1)
         return spl
 
-    def inverse_and_likelihood_contribution(self, y, x: Array = None):
+    def inverse_and_likelihood_contribution(self, y, x: Array = None, **kwargs):
         z, y_minus = self.split_input(y)
         z_condition = z
         if x is not None:
@@ -25,7 +26,7 @@ class Slice(Funnel):
         lc = self.decoder(z_condition).log_prob(y_minus)
         return z, lc
 
-    def forward_and_likelihood_contribution(self, z, x: Array = None):
+    def forward_and_likelihood_contribution(self, z, x: Array = None, **kwargs):
         z_condition = z
         if x is not None:
             z_condition = jnp.concatenate([z, x], axis=-1)

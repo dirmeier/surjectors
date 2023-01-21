@@ -8,7 +8,12 @@ from surjectors.distributions.transformed_distribution import Array
 from surjectors.surjectors.surjector import Surjector
 
 
+# pylint: disable=too-many-arguments, arguments-renamed
 class MaskedCoupling(distrax.MaskedCoupling, Surjector):
+    """
+    Masked coupling layer
+    """
+
     def __init__(
         self,
         mask: Array,
@@ -38,7 +43,7 @@ class MaskedCoupling(distrax.MaskedCoupling, Surjector):
         return y, logdet
 
     def forward(self, z: Array, x: Array = None) -> Array:
-        y, log_det = self.forward_and_log_det(z, x)
+        y, _ = self.forward_and_log_det(z, x)
         return y
 
     def inverse_and_log_det(
@@ -57,8 +62,8 @@ class MaskedCoupling(distrax.MaskedCoupling, Surjector):
         )
         return z, logdet
 
-    def inverse_and_likelihood_contribution(self, y, x: Array = None):
+    def inverse_and_likelihood_contribution(self, y, x: Array = None, **kwargs):
         return self.inverse_and_log_det(y, x)
 
-    def forward_and_likelihood_contribution(self, z, x: Array = None):
+    def forward_and_likelihood_contribution(self, z, x: Array = None, **kwargs):
         return self.forward_and_log_det(z, x)

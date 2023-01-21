@@ -18,6 +18,6 @@ from surjectors.surjectors.affine_masked_coupling_inference_funnel import (
 )
 from surjectors.surjectors.augment import Augment
 from surjectors.surjectors.chain import Chain
-from surjectors.surjectors.mlp import MLP
+from surjectors.surjectors.mlp import MLPFunnel
 from surjectors.surjectors.rq_coupling_funnel import NSFCouplingFunnel
 from surjectors.surjectors.slice import Slice

@@ -8,6 +8,10 @@ from surjectors.surjectors.funnel import Funnel
 
 
 class AffineMaskedCouplingGenerativeFunnel(Funnel):
+    """
+    Generative funnel layer using masked affine coupling
+    """
+
     def __init__(self, n_keep, encoder, conditioner):
         super().__init__(
             n_keep, None, conditioner, encoder, "generative_surjector"
@@ -25,23 +29,23 @@ class AffineMaskedCouplingGenerativeFunnel(Funnel):
 
         return MaskedCoupling(mask, self._conditioner, _bijector_fn)
 
-    def inverse_and_likelihood_contribution(self, y, x=None):
+    def inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
         y_condition = y
-        # TODO
+        # TODO(simon) : fixme
         if x is not None:
             y_condition = jnp.concatenate([y, x], axis=-1)
         z_minus, lc = self.encoder(y_condition).sample_and_log_prob(
             seed=hk.next_rng_key()
         )
-        input = jnp.concatenate([y, z_minus], axis=-1)
-        # TODO: remote the conditioning here?
-        z, jac_det = self._inner_bijector(
-            self._mask(input)
-        ).inverse_and_log_det(input)
+        arr = jnp.concatenate([y, z_minus], axis=-1)
+        # TODO(simon): remote the conditioning here?
+        z, jac_det = self._inner_bijector(self._mask(arr)).inverse_and_log_det(
+            arr
+        )
         return z, -lc + jac_det
 
-    def forward_and_likelihood_contribution(self, z, x=None):
-        # TODO: remote the conditioning here?
+    def forward_and_likelihood_contribution(self, z, x=None, **kwargs):
+        # TODO(simon): remote the conditioning here?
         faux, jac_det = self._inner_bijector(self._mask(z)).inverse_and_log_det(
             z
         )

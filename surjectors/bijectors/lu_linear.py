@@ -6,7 +6,12 @@ from jax import numpy as jnp
 from surjectors.surjectors.surjector import Surjector
 
 
+# pylint: disable=arguments-differ
 class LULinear(Surjector):
+    """
+    Surjection layer based on LU composition
+    """
+
     def __init__(self, n_keep, with_bias=False, dtype=jnp.float32):
         super().__init__(n_keep, None, None, "bijection", dtype)
         if with_bias:

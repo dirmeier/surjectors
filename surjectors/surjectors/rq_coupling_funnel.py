@@ -11,7 +11,6 @@ class NSFCouplingFunnel(Surjector):
     """
     Neural spline flow coupling funnel
 
-
     """
 
     def __init__(
@@ -40,14 +39,15 @@ class NSFCouplingFunnel(Surjector):
 
         return MaskedCoupling(mask, self._conditioner, _bijector_fn)
 
-    def inverse_and_likelihood_contribution(self, y, x: Array = None):
+    def inverse_and_likelihood_contribution(self, y, x: Array = None, **kwargs):
         # TODO(simon: this needs to be implemted
-        mask = self._mask(y)
-        faux, jac_det = self._inner_bijector(mask).inverse_and_log_det(y)
-        z = faux[:, : self.n_keep]
-        lp = self.decoder.log_prob(faux[:, self.n_keep :], context=z)
-        return z, lp + jac_det
+        raise NotImplementedError()
+        # mask = self._mask(y) + x
+        # faux, jac_det = self._inner_bijector(mask).inverse_and_log_det(y)
+        # z = faux[:, : self.n_keep]
+        # lp = self.decoder.log_prob(faux[:, self.n_keep :], context=z)
+        # return z, lp + jac_det
 
-    def forward_and_likelihood_contribution(self, z, x: Array = None):
+    def forward_and_likelihood_contribution(self, z, x: Array = None, **kwargs):
         # TODO(simon: this needs to be implemted
         raise NotImplementedError()
