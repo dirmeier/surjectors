@@ -1,9 +1,12 @@
+# pylint: skip-file
+
 import distrax
 import haiku as hk
+import jax
+import optax
 import pytest
-import sampler
-import train_flow
 from jax import numpy as jnp
+from jax import random
 
 from surjectors import (
     AffineMaskedCouplingGenerativeFunnel,
@@ -16,6 +19,35 @@ from surjectors import (
 )
 from surjectors.conditioners.mlp import mlp_conditioner
 from surjectors.util import make_alternating_binary_mask
+
+
+def simple_dataset(rng_key, batch_size, n_dimension, n_latent):
+    means_sample_key, rng_key = random.split(rng_key, 2)
+    pz_mean = distrax.Normal(0.0, 10.0).sample(
+        seed=means_sample_key, sample_shape=(n_latent)
+    )
+    pz = distrax.MultivariateNormalDiag(
+        loc=pz_mean, scale_diag=jnp.ones_like(pz_mean)
+    )
+    p_loadings = distrax.Normal(0.0, 10.0)
+    make_noise = distrax.Normal(0.0, 1)
+
+    loadings_sample_key, rng_key = random.split(rng_key, 2)
+    loadings = p_loadings.sample(
+        seed=loadings_sample_key, sample_shape=(n_dimension, len(pz_mean))
+    )
+
+    def _fn(rng_key):
+        z_sample_key, noise_sample_key = random.split(rng_key, 2)
+        z = pz.sample(seed=z_sample_key, sample_shape=(batch_size,))
+        noise = make_noise.sample(
+            seed=noise_sample_key, sample_shape=(batch_size, n_dimension)
+        )
+
+        y = (loadings @ z.T).T + noise
+        return {"y": y, "x": noise}
+
+    return _fn
 
 
 def _conditional_fn(n_dim):
@@ -115,11 +147,38 @@ def inference_surjection(request):
     yield request.param
 
 
+def train(rng_seq, model, sampler, n_iter=5):
+    @jax.jit
+    def step(rng, params, state, **batch):
+        def loss_fn(params):
+            lp = model.apply(params, rng, method="log_prob", **batch)
+            return -jnp.sum(lp)
+
+        loss, grads = jax.value_and_grad(loss_fn)(params)
+        updates, new_state = adam.update(grads, state, params)
+        new_params = optax.apply_updates(params, updates)
+        return loss, new_params, new_state
+
+    init_data = sampler(next(rng_seq))
+    params = model.init(next(rng_seq), method="log_prob", **init_data)
+
+    adam = optax.adamw(0.001)
+    state = adam.init(params)
+
+    losses = [0] * n_iter
+    for i in range(n_iter):
+        batch = sampler(next(rng_seq))
+        loss, params, state = step(next(rng_seq), params, state, **batch)
+        losses[i] = loss
+
+    return params
+
+
 def _surjection(surjector_fn, n_data, n_latent):
     rng_seq = hk.PRNGSequence(0)
-    sampling_fn, _ = sampler.sampler(next(rng_seq), 64, n_data, n_latent)
+    sampling_fn = simple_dataset(next(rng_seq), 64, n_data, n_latent)
     model = make_surjector(n_data, n_latent, surjector_fn)
-    train_flow.train(rng_seq, model, sampling_fn)
+    train(rng_seq, model, sampling_fn)
 
 
 def test_generative_surjection(generative_surjection):
