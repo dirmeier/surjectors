@@ -53,7 +53,7 @@ dependencies = [
 
 [tool.hatch.envs.test.scripts]
 lint = 'pylint surjectors'
-test = 'pytest -v --doctest-modules --cov=./surjectors --cov-report=xml surjectors tests'
+test = 'pytest -v --doctest-modules --cov=./surjectors --cov-report=xml surjectors'
 
 [tool.black]
 line-length = 80
