@@ -7,8 +7,8 @@
 
 ## About
 
-Surjectors is a light-weight library of inference and generative surjection layers, i.e., layers that reduce dimensionality, for density estimation using normalizing flows.
-Surjectors builds on Distrax and Haiku.
+Surjectors is a light-weight library of inference and generative surjection layers, i.e., layers that reduce or increase dimensionality, for density estimation using normalizing flows.
+Surjectors builds on Distrax and Haiku and is fully compatible with both of them.
 
 ## Example usage
 
