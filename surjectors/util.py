@@ -100,3 +100,25 @@ def as_batch_iterator(
         return batch
 
     return _DataLoader(num_batches, idxs, get_batch)
+
+
+def unstack(x, axis=0):
+    """
+    Unstack a tensor
+
+    Unstack a tensor as tf.unstack does
+
+    Parameters
+    ----------
+    x: jnp.ndarray
+    axis: int
+
+    Returns
+    -------
+    jnp.ndarray
+    """
+
+    return [
+        lax.index_in_dim(x, i, axis, keepdims=False)
+        for i in range(x.shape[axis])
+    ]
