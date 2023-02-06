@@ -95,14 +95,7 @@ class TransformedDistribution:
             a sample from the transformed distribution
         """
 
-        if x is not None and len(sample_shape) > 0:
-            chex.assert_equal(sample_shape[0], x.shape[0])
-        elif x is not None:
-            sample_shape = (x.shape[0],)
-        z = self.base_distribution.sample(
-            seed=hk.next_rng_key(), sample_shape=sample_shape
-        )
-        y = jax.vmap(self.surjector.forward)(z, x)
+        y, _ = self.sample_and_log_prob(sample_shape, x)
         return y
 
     def sample_and_log_prob(self, sample_shape=(), x: Array = None):
@@ -123,11 +116,15 @@ class TransformedDistribution:
             tuple of two arrays of floats. The first one is the drawn sample
             transformation, the second one is its log probability
         """
+
+        if x is not None and len(sample_shape) > 0:
+            chex.assert_equal(sample_shape[0], x.shape[0])
+
         z, lp_z = self.base_distribution.sample_and_log_prob(
-            seed=hk.next_rng_key(), sample_shape=sample_shape, x=x
+            seed=hk.next_rng_key(), sample_shape=sample_shape,
         )
-        y, fldj = jax.vmap(self.surjector.forward_and_likelihood_contribution)(
+        y, fldj = self.surjector.forward_and_likelihood_contribution(
             z, x=x
         )
-        lp = jax.vmap(jnp.subtract)(lp_z, fldj)
+        lp = lp_z - fldj
         return y, lp

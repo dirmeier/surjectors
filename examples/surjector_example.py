@@ -47,7 +47,7 @@ def make_model(dim):
         means, log_scales = jnp.split(params, 2, -1)
         return distrax.ScalarAffine(means, jnp.exp(log_scales))
 
-    def _flow(method, **kwargs):
+    def _flow(**kwargs):
         layers = []
         for i in range(2):
             mask = make_alternating_binary_mask(dim, i % 2 == 0)
@@ -64,7 +64,7 @@ def make_model(dim):
             reinterpreted_batch_ndims=1,
         )
         td = TransformedDistribution(base_distribution, chain)
-        return td.log_prob(method, **kwargs)
+        return td.log_prob(**kwargs)
 
     td = hk.transform(_flow)
     td = hk.without_apply_rng(td)
@@ -73,7 +73,7 @@ def make_model(dim):
 
 def train(rng_seq, data, model, max_n_iter=1000):
     train_iter = as_batch_iterator(next(rng_seq), data, 100, True)
-    params = model.init(next(rng_seq), method="log_prob", **train_iter(0))
+    params = model.init(next(rng_seq), **train_iter(0))
 
     optimizer = optax.adam(1e-4)
     state = optimizer.init(params)
@@ -81,7 +81,7 @@ def train(rng_seq, data, model, max_n_iter=1000):
     @jax.jit
     def step(params, state, **batch):
         def loss_fn(params):
-            lp = model.apply(params, method="log_prob", **batch)
+            lp = model.apply(params, **batch)
             return -jnp.sum(lp)
 
         loss, grads = jax.value_and_grad(loss_fn)(params)
@@ -116,7 +116,7 @@ def run():
 
     theta = jnp.ones((5, 2))
     data = jnp.repeat(jnp.arange(5), 2).reshape(-1, 2)
-    print(model.apply(params, method="log_prob", **{"y": data, "x": theta}))
+    print(model.apply(params, **{"y": data, "x": theta}))
 
 
 if __name__ == "__main__":
