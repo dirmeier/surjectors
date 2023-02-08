@@ -33,13 +33,15 @@ repos:
     files: "(surjectors|tests|examples)"
 
 - repo: https://github.com/pycqa/bandit
-  rev: 1.7.0
+  rev: 1.7.1
   hooks:
   - id: bandit
     language: python
     language_version: python3
     types: [python]
-    files: "(surjectors|tests|examples)"
+    args: ["-c", "pyproject.toml"]
+    additional_dependencies: ["toml"]
+    files: "(surjectors|examples)"
 
 - repo: https://github.com/PyCQA/flake8
   rev: 5.0.1

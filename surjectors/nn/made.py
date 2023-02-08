@@ -3,7 +3,7 @@ from typing import Callable, List, Optional, Tuple, Union
 import haiku as hk
 import jax
 from jax import numpy as jnp
-from tensorflow_probability.substrates.jax.bijectors.masked_autoregressive import (
+from tensorflow_probability.substrates.jax.bijectors.masked_autoregressive import (  # noqa: E501
     _make_dense_autoregressive_masks,
 )
 
