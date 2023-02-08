@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable
 
 from distrax._src.utils import math
 from jax import numpy as jnp
@@ -18,7 +18,7 @@ class MaskedAutoregressive(_Bijector):
         self,
         conditioner: MADE,
         bijector_fn: Callable,
-        event_ndims: Optional[int] = 1,
+        event_ndims: int = 1,
         inner_event_ndims: int = 0,
         dtype=jnp.float32,
     ):
@@ -32,7 +32,8 @@ class MaskedAutoregressive(_Bijector):
         super().__init__(conditioner, bijector_fn, dtype)
         if not isinstance(conditioner, MADE):
             raise ValueError(
-                "conditioner should be a MADE when used MaskedAutoregressive flow"
+                "conditioner should be a MADE when used "
+                "MaskedAutoregressive flow"
             )
 
     def forward_and_log_det(self, z, x: Array = None):

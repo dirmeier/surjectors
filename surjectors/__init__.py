@@ -19,7 +19,7 @@ from surjectors.surjectors.affine_masked_coupling_inference_funnel import (
 from surjectors.surjectors.augment import Augment
 from surjectors.surjectors.chain import Chain
 from surjectors.surjectors.mlp import MLPFunnel
-from surjectors.surjectors.rq_coupling_funnel import (
-    RationalQuadraticSplineCouplingFunnel,
+from surjectors.surjectors.rq_masked_coupling_inference_funnel import (
+    RationalQuadraticSplineMaskedCouplingInferenceFunnel,
 )
 from surjectors.surjectors.slice import Slice
