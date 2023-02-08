@@ -7,7 +7,12 @@ from jax import lax
 from jax import numpy as jnp
 
 
+# pylint: disable=too-many-arguments
 class MaskedLinear(hk.Linear):
+    """
+    Linear layer that masks some weights out
+    """
+
     def __init__(
         self,
         mask: chex.Array,

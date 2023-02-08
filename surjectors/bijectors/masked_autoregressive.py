@@ -9,8 +9,6 @@ from surjectors.nn.made import MADE
 
 
 # pylint: disable=too-many-arguments, arguments-renamed
-
-
 class MaskedAutoregressive(_Bijector):
     """
     Masked autoregressive layer
