@@ -4,8 +4,6 @@ import distrax
 from chex import Array
 
 from surjectors.bijectors.masked_autoregressive import MaskedAutoregressive
-
-# noqa: E501
 from surjectors.surjectors.affine_masked_autoregressive_inference_funnel import (  # noqa: E501
     AffineMaskedAutoregressiveInferenceFunnel,
 )

@@ -1,21 +1,13 @@
 # pylint: skip-file
 
 import chex
-import distrax
 import haiku as hk
-import jax
-import optax
 import pytest
 from jax import numpy as jnp
 from jax import random
-from tensorflow_probability.substrates.jax.bijectors.masked_autoregressive import (
-    AutoregressiveNetwork,
-)
 
-import surjectors
-from surjectors.conditioners.mlp import mlp_conditioner
 from surjectors.nn.made import MADE
-from surjectors.util import make_alternating_binary_mask, unstack
+from surjectors.util import unstack
 
 
 @pytest.fixture()

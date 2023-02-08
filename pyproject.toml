@@ -91,3 +91,6 @@ per-file-ignores = [
 disable = """
 invalid-name,missing-module-docstring,R0801
 """
+
+[tool.bandit]
+skips = ["B101"]
