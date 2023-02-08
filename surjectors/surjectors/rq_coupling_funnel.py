@@ -7,7 +7,7 @@ from surjectors.surjectors.surjector import Surjector
 
 
 # pylint: disable=too-many-arguments
-class NSFCouplingFunnel(Surjector):
+class RationalQuadraticSplineCouplingFunnel(Surjector):
     """
     Neural spline flow coupling funnel
 

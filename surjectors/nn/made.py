@@ -10,6 +10,7 @@ from tensorflow_probability.substrates.jax.bijectors.masked_autoregressive impor
 from surjectors.nn.masked_linear import MaskedLinear
 
 
+# pylint: disable=too-many-arguments, arguments-renamed
 class MADE(hk.Module):
     """
     Masked Autoregressive Density Estimator
@@ -86,5 +87,5 @@ class MADE(hk.Module):
         return output
 
     def reverse(self):
-        """"""
+        """Not implemented"""
         raise NotImplementedError("")

@@ -1,5 +1,3 @@
-from abc import ABC, abstractmethod
-
 from chex import Array
 from jax import numpy as jnp
 
@@ -17,6 +15,7 @@ class _Bijector(Surjector):
 
     @property
     def bijector_fn(self):
+        """Returns the bijector function"""
         return self._encoder
 
     def _inner_bijector(self, params):
@@ -24,6 +23,7 @@ class _Bijector(Surjector):
 
     @property
     def conditioner(self):
+        """Returns the conditioner network"""
         return self._decoder
 
     @property
@@ -33,3 +33,40 @@ class _Bijector(Surjector):
     @property
     def encoder(self):
         raise NotImplementedError("")
+
+    def forward_and_log_det(self, z, x: Array = None):
+        """
+        Compute the forward transformation and its likelihood contribution
+
+        Parameters
+        ----------
+        z: jnp.ndarray
+            event for which the forward transform and likelihood contribution
+            is computed
+        x: Optional[jnp.ndarray]
+            event to condition on
+
+        Returns
+        -------
+        Tuple[jnp.ndarray, jnp.ndarray]
+            tuple of two arrays of floats. The first one is the forward
+            transformation, the second one its likelihood contribution
+        """
+
+    def inverse_and_log_det(self, y, x: Array = None):
+        """
+        Compute the inverse transformation and its likelihood contribution
+
+        Parameters
+        ----------
+        y: jnp.ndarray
+            event for which the inverse and likelihood contribution is computed
+        x: Optional[jnp.ndarray]
+            event to condition on
+
+        Returns
+        -------
+        Tuple[jnp.ndarray, jnp.ndarray]
+            tuple of two arrays of floats. The first one is the inverse
+            transformation, the second one its likelihood contribution
+        """

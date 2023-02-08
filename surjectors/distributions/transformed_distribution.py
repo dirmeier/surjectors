@@ -3,8 +3,6 @@ from typing import Tuple
 import chex
 import distrax
 import haiku as hk
-import jax
-import jax.numpy as jnp
 from chex import Array
 from distrax import Distribution
 
@@ -121,10 +119,9 @@ class TransformedDistribution:
             chex.assert_equal(sample_shape[0], x.shape[0])
 
         z, lp_z = self.base_distribution.sample_and_log_prob(
-            seed=hk.next_rng_key(), sample_shape=sample_shape,
+            seed=hk.next_rng_key(),
+            sample_shape=sample_shape,
         )
-        y, fldj = self.surjector.forward_and_likelihood_contribution(
-            z, x=x
-        )
+        y, fldj = self.surjector.forward_and_likelihood_contribution(z, x=x)
         lp = lp_z - fldj
         return y, lp
