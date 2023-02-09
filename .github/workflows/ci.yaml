@@ -73,7 +73,7 @@ jobs:
           pip install hatch
       - name: Build package
         run: |
-          pip install jaxlib==0.3.25 jax==0.3.25
+          pip install jaxlib==0.3.25 jax==0.3.25 distrax==0.1.2
           pip list
       - name: Run tests
         run: |
