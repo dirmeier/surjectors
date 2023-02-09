@@ -20,7 +20,7 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "distrax>=0.1.2",
+    "distrax==0.1.2",
     "dm-haiku>=0.0.9",
     "optax>=0.1.3"
 ]
