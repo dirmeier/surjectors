@@ -74,6 +74,7 @@ jobs:
       - name: Build package
         run: |
           pip install jaxlib jax
+          pip list
       - name: Run tests
         run: |
           hatch run test:test
