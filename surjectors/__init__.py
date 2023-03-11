@@ -2,7 +2,7 @@
 surjectors: Surjection layers for density estimation with normalizing flows
 """
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 from surjectors.bijectors.lu_linear import LULinear
 from surjectors.bijectors.masked_coupling import MaskedCoupling
