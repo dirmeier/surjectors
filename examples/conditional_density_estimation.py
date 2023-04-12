@@ -20,18 +20,12 @@ from surjectors.util import (
 )
 
 
-def simulator_fn(seed, theta):
-    p_noise = distrax.Normal(jnp.zeros_like(theta), 1.0)
-    noise = p_noise.sample(seed=seed)
-    return theta + 0.1 * noise
-
-
 def make_model(dim):
     def _bijector_fn(params):
         means, log_scales = jnp.split(params, 2, -1)
         return distrax.ScalarAffine(means, jnp.exp(log_scales))
 
-    def _flow(**kwargs):
+    def _flow(method, **kwargs):
         layers = []
         for i in range(2):
             mask = make_alternating_binary_mask(dim, i % 2 == 0)
@@ -48,16 +42,15 @@ def make_model(dim):
             reinterpreted_batch_ndims=1,
         )
         td = TransformedDistribution(base_distribution, chain)
-        return td.log_prob(**kwargs)
+        return td(method=method, **kwargs)
 
     td = hk.transform(_flow)
-    td = hk.without_apply_rng(td)
     return td
 
 
 def train(rng_seq, data, model, max_n_iter=1000):
     train_iter = as_batch_iterator(next(rng_seq), data, 100, True)
-    params = model.init(next(rng_seq), **train_iter(0))
+    params = model.init(next(rng_seq), method="log_prob", **train_iter(0))
 
     optimizer = optax.adam(1e-4)
     state = optimizer.init(params)
@@ -65,7 +58,7 @@ def train(rng_seq, data, model, max_n_iter=1000):
     @jax.jit
     def step(params, state, **batch):
         def loss_fn(params):
-            lp = model.apply(params, **batch)
+            lp = model.apply(params, None, method="log_prob", **batch)
             return -jnp.sum(lp)
 
         loss, grads = jax.value_and_grad(loss_fn)(params)
@@ -86,21 +79,27 @@ def train(rng_seq, data, model, max_n_iter=1000):
 
 
 def run():
-    n = 1000
-    prior = distrax.Uniform(jnp.full(2, -2), jnp.full(2, 2))
-    theta = prior.sample(seed=random.PRNGKey(0), sample_shape=(n,))
-    likelihood = distrax.MultivariateNormalDiag(theta, jnp.ones_like(theta))
-    y = likelihood.sample(seed=random.PRNGKey(1))
-    data = named_dataset(y, theta)
+    n = 10000
+    thetas = distrax.Normal(jnp.zeros(2), jnp.full(2, 10)).sample(
+        seed=random.PRNGKey(0), sample_shape=(n,)
+    )
+    y = 2 * thetas + distrax.Normal(jnp.zeros_like(thetas), 0.1).sample(
+        seed=random.PRNGKey(1)
+    )
+    data = named_dataset(y, thetas)
 
     model = make_model(2)
     params, losses = train(hk.PRNGSequence(2), data, model)
-    plt.plot(losses)
-    plt.show()
+    samples = model.apply(
+        params,
+        random.PRNGKey(2),
+        method="sample",
+        x=jnp.full_like(thetas, -2.0),
+    )
 
-    theta = jnp.ones((5, 2))
-    data = jnp.repeat(jnp.arange(5), 2).reshape(-1, 2)
-    print(model.apply(params, **{"y": data, "x": theta}))
+    plt.hist(samples[:, 0])
+    plt.hist(samples[:, 1])
+    plt.show()
 
 
 if __name__ == "__main__":
