@@ -9,7 +9,7 @@ from jax import random
 
 from surjectors import TransformedDistribution
 from surjectors.bijectors.masked_autoregressive import MaskedAutoregressive
-from surjectors.nn.made import MADE
+from surjectors.conditioners import MADE
 from surjectors.util import unstack
 
 

@@ -5,8 +5,9 @@ surjectors: Surjection layers for density estimation with normalizing flows
 __version__ = "0.2.2"
 
 from surjectors.bijectors.lu_linear import LULinear
+from surjectors.bijectors.masked_autoregressive import MaskedAutoregressive
 from surjectors.bijectors.masked_coupling import MaskedCoupling
-from surjectors.conditioners import mlp_conditioner, transformer_conditioner
+from surjectors.bijectors.permutation import Permutation
 from surjectors.distributions.transformed_distribution import (
     TransformedDistribution,
 )

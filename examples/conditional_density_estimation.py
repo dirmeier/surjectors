@@ -9,13 +9,12 @@ from matplotlib import pyplot as plt
 
 from surjectors import (
     Chain,
+    MaskedAutoregressive,
     MaskedCoupling,
+    Permutation,
     TransformedDistribution,
-    mlp_conditioner,
 )
-from surjectors.bijectors.masked_autoregressive import MaskedAutoregressive
-from surjectors.bijectors.permutation import Permutation
-from surjectors.nn.made import MADE
+from surjectors.conditioners import MADE, mlp_conditioner
 from surjectors.util import (
     as_batch_iterator,
     make_alternating_binary_mask,
