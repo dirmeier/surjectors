@@ -19,5 +19,8 @@ def mlp_conditioner(
     """
 
     return hk.nets.MLP(
-        output_sizes=dims, w_init=w_init, b_init=b_init, activation=activation
+        output_sizes=dims,
+        w_init=w_init,
+        b_init=b_init,
+        activation=activation,
     )

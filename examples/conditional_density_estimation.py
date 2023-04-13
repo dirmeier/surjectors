@@ -13,28 +13,55 @@ from surjectors import (
     TransformedDistribution,
     mlp_conditioner,
 )
+from surjectors.bijectors.masked_autoregressive import MaskedAutoregressive
+from surjectors.bijectors.permutation import Permutation
+from surjectors.nn.made import MADE
 from surjectors.util import (
     as_batch_iterator,
     make_alternating_binary_mask,
     named_dataset,
+    unstack,
 )
 
 
-def make_model(dim):
+def make_model(dim, model="coupling"):
     def _bijector_fn(params):
-        means, log_scales = jnp.split(params, 2, -1)
+        means, log_scales = unstack(params, -1)
         return distrax.ScalarAffine(means, jnp.exp(log_scales))
 
     def _flow(method, **kwargs):
         layers = []
+        order = jnp.arange(2)
         for i in range(2):
-            mask = make_alternating_binary_mask(dim, i % 2 == 0)
-            layer = MaskedCoupling(
-                mask=mask,
-                bijector=_bijector_fn,
-                conditioner=mlp_conditioner([8, 8, dim * 2]),
-            )
-            layers.append(layer)
+            if model == "coupling":
+                mask = make_alternating_binary_mask(2, i % 2 == 0)
+                layer = MaskedCoupling(
+                    mask=mask,
+                    bijector=_bijector_fn,
+                    conditioner=hk.Sequential(
+                        [
+                            mlp_conditioner([8, 8, dim * 2]),
+                            hk.Reshape((dim, dim)),
+                        ]
+                    ),
+                )
+                layers.append(layer)
+            else:
+                layer = MaskedAutoregressive(
+                    bijector_fn=_bijector_fn,
+                    conditioner=MADE(
+                        2,
+                        [32, 32, 2 * 2],
+                        2,
+                        w_init=hk.initializers.TruncatedNormal(0.01),
+                        b_init=jnp.zeros,
+                    ),
+                )
+                order = order[::-1]
+                layers.append(layer)
+                layers.append(Permutation(order, 1))
+        if model != "coupling":
+            layers = layers[:-1]
         chain = Chain(layers)
 
         base_distribution = distrax.Independent(
