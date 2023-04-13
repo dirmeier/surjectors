@@ -6,7 +6,7 @@ import pytest
 from jax import numpy as jnp
 from jax import random
 
-from surjectors.nn.made import MADE
+from surjectors.conditioners import MADE
 from surjectors.util import unstack
 
 

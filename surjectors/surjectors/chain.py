@@ -34,21 +34,26 @@ class Chain(Surjector):
         return z, lc
 
     def forward_and_likelihood_contribution(self, z, x=None, **kwargs):
-        y, log_det = self._surjectors[-1].forward_and_log_det(z, x)
+        y, log_det = self._forward_and_log_contribution_dispatch(
+            self._surjectors[-1], z, x
+        )
         for surjector in reversed(self._surjectors[:-1]):
             y, lc = self._forward_and_log_contribution_dispatch(surjector, y, x)
             log_det += lc
         return y, log_det
 
     @staticmethod
-    def _forward_and_log_contribution_dispatch(surjector, y, x):
+    def _forward_and_log_contribution_dispatch(surjector, z, x):
         if isinstance(surjector, Surjector):
-            fn = getattr(surjector, "forward_and_likelihood_contribution")
-            z, lc = fn(y, x)
+            if hasattr(surjector, "forward_and_likelihood_contribution"):
+                fn = getattr(surjector, "forward_and_likelihood_contribution")
+            else:
+                fn = getattr(surjector, "forward_and_log_det")
+            y, lc = fn(z, x)
         else:
             fn = getattr(surjector, "forward_and_log_det")
-            z, lc = fn(y)
-        return z, lc
+            y, lc = fn(z)
+        return y, lc
 
     def forward(self, z, x=None):
         y, _ = self.forward_and_likelihood_contribution(z, x)

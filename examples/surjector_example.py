@@ -1,19 +1,3 @@
-"""
-Bayesian Neural Network
-=======================
-
-This example implements the training and prediction of a
-Bayesian Neural Network.
-Predictions from a Haiku MLP fro the same data are shown
-as a reference.
-References
-----------
-[1] Blundell C., Cornebise J., Kavukcuoglu K., Wierstra D.
-    "Weight Uncertainty in Neural Networks".
-    ICML, 2015.
-"""
-
-
 import distrax
 import haiku as hk
 import jax
@@ -23,12 +7,8 @@ from jax import numpy as jnp
 from jax import random
 from matplotlib import pyplot as plt
 
-from surjectors import (
-    Chain,
-    MaskedCoupling,
-    TransformedDistribution,
-    mlp_conditioner,
-)
+from surjectors import Chain, MaskedCoupling, TransformedDistribution
+from surjectors.conditioners import mlp_conditioner
 from surjectors.util import (
     as_batch_iterator,
     make_alternating_binary_mask,

@@ -115,7 +115,9 @@ class TransformedDistribution:
             transformation, the second one is its log probability
         """
 
-        if x is not None and len(sample_shape) > 0:
+        if x is not None and len(sample_shape) == 0:
+            sample_shape = (x.shape[0],)
+        if x is not None:
             chex.assert_equal(sample_shape[0], x.shape[0])
 
         z, lp_z = self.base_distribution.sample_and_log_prob(

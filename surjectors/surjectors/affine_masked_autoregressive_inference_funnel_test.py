@@ -6,8 +6,8 @@ from jax import numpy as jnp
 from jax import random
 
 from surjectors import TransformedDistribution
+from surjectors.conditioners import MADE
 from surjectors.conditioners.mlp import mlp_conditioner
-from surjectors.nn.made import MADE
 from surjectors.surjectors.affine_masked_autoregressive_inference_funnel import (  # noqa: E501
     AffineMaskedAutoregressiveInferenceFunnel,
 )
