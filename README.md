@@ -2,6 +2,7 @@
 
 [![status](http://www.repostatus.org/badges/latest/concept.svg)](http://www.repostatus.org/#concept)
 [![ci](https://github.com/dirmeier/surjectors/actions/workflows/ci.yaml/badge.svg)](https://github.com/dirmeier/surjectors/actions/workflows/ci.yaml)
+[![version](https://img.shields.io/pypi/v/surjectors.svg?colorB=black&style=flat)](https://pypi.org/project/surjectors/)
 
 > Surjection layers for density estimation with normalizing flows
 
@@ -19,7 +20,11 @@ You can find several self-contained examples on how to use the algorithms in `ex
 Make sure to have a working `JAX` installation. Depending whether you want to use CPU/GPU/TPU,
 please follow [these instructions](https://github.com/google/jax#installation).
 
-You can install
+To install the package from PyPI, call:
+
+```bash
+pip install surjectors
+```
 
 To install the latest GitHub <RELEASE>, just call the following on the command line:
 
