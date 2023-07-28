@@ -10,14 +10,16 @@
 Surjectors is a light-weight library of inference and generative surjection layers, i.e., layers that reduce or increase dimensionality, for density estimation using normalizing flows.
 Surjectors builds on Distrax and Haiku and is fully compatible with both of them.
 
-## Example usage
+## Examples
 
-TODO
+You can find several self-contained examples on how to use the algorithms in `examples`.
 
 ## Installation
 
 Make sure to have a working `JAX` installation. Depending whether you want to use CPU/GPU/TPU,
 please follow [these instructions](https://github.com/google/jax#installation).
+
+You can install
 
 To install the latest GitHub <RELEASE>, just call the following on the command line:
 
