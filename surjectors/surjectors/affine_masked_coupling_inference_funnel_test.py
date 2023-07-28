@@ -35,7 +35,7 @@ def _get_funnel_surjector(n_latent, n_dimension):
     return AffineMaskedCouplingInferenceFunnel(
         n_latent,
         _decoder_fn(n_dimension - n_latent),
-        mlp_conditioner([4, 4, n_latent * 2]),
+        mlp_conditioner([4, 4, n_dimension * 2]),
     )
 
 
