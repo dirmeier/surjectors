@@ -6,10 +6,9 @@ from jax import numpy as jnp
 from jax import random
 
 from surjectors import TransformedDistribution
-from surjectors.conditioners import MADE
 from surjectors.conditioners.mlp import mlp_conditioner
-from surjectors.surjectors.affine_masked_autoregressive_inference_funnel import (  # noqa: E501
-    AffineMaskedAutoregressiveInferenceFunnel,
+from surjectors.surjectors.affine_masked_coupling_inference_funnel import (  # noqa: E501
+    AffineMaskedCouplingInferenceFunnel,
 )
 
 
@@ -33,10 +32,10 @@ def _base_distribution_fn(n_latent):
 
 
 def _get_funnel_surjector(n_latent, n_dimension):
-    return AffineMaskedAutoregressiveInferenceFunnel(
+    return AffineMaskedCouplingInferenceFunnel(
         n_latent,
         _decoder_fn(n_dimension - n_latent),
-        MADE(n_latent, [4, 4], 2),
+        mlp_conditioner([4, 4, n_dimension * 2]),
     )
 
 
@@ -55,7 +54,7 @@ def make_surjector(n_dimension, n_latent):
     return td
 
 
-def test_affine_masked_autoregressive_inference_funnel():
+def test_affine_masked_coupling_inference_funnel():
     n_dimension, n_latent = 4, 2
     y = random.normal(random.PRNGKey(1), shape=(10, n_dimension))
 
@@ -64,7 +63,7 @@ def test_affine_masked_autoregressive_inference_funnel():
     _ = flow.apply(params, None, method="log_prob", y=y)
 
 
-def test_conditional_affine_masked_autoregressive_inference_funnel():
+def test_conditional_affine_masked_coupling_inference_funnel():
     n_dimension, n_latent = 4, 2
     y = random.normal(random.PRNGKey(1), shape=(10, n_dimension))
     x = random.normal(random.PRNGKey(1), shape=(10, 2))

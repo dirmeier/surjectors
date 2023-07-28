@@ -7,7 +7,7 @@ from jax import lax
 from jax import numpy as jnp
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,too-few-public-methods
 class MaskedLinear(hk.Linear):
     """
     Linear layer that masks some weights out
