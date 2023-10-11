@@ -1,0 +1,15 @@
+-e .
+furo
+ipython
+matplotlib
+nbsphinx
+seaborn
+sphinx
+sphinx-autobuild
+sphinx-book-theme
+sphinx-math-dollar
+sphinx_autodoc_typehints
+sphinx_design
+sphinx_fontawesome
+sphinx_gallery
+sphinxcontrib-fulltoc
