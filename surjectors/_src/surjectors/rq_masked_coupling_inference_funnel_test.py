@@ -9,11 +9,11 @@ from surjectors import (
     RationalQuadraticSplineMaskedCouplingInferenceFunnel,
     TransformedDistribution,
 )
-from surjectors.conditioners.mlp import mlp_conditioner
+from surjectors._src.conditioners.mlp import make_mlp
 
 
 def _conditional_fn(n_dim):
-    decoder_net = mlp_conditioner([4, 4, n_dim * 2])
+    decoder_net = make_mlp([4, 4, n_dim * 2])
 
     def _fn(z):
         params = decoder_net(z)

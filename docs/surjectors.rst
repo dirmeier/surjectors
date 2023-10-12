@@ -3,8 +3,6 @@
 
 .. currentmodule:: surjectors
 
-.. automodule:: surjectors
-
 
 General
 -------
@@ -17,11 +15,13 @@ TransformedDistribution
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ..  autoclass:: TransformedDistribution
+    :members: __init__
 
 Chain
 ~~~~~
 
 ..  autoclass:: Chain
+    :members: __init__
 
 Bijective layers
 ----------------

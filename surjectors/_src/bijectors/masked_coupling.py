@@ -4,8 +4,8 @@ import distrax
 from distrax._src.utils import math
 from jax import numpy as jnp
 
-from surjectors.distributions.transformed_distribution import Array
-from surjectors.surjectors.surjector import Surjector
+from surjectors._src.distributions.transformed_distribution import Array
+from surjectors._src.surjectors.surjector import Surjector
 
 
 # pylint: disable=too-many-arguments, arguments-renamed

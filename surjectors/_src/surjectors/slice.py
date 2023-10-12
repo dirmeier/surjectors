@@ -2,7 +2,7 @@ import haiku as hk
 from chex import Array
 from jax import numpy as jnp
 
-from surjectors.surjectors.funnel import Funnel
+from surjectors._src.surjectors.funnel import Funnel
 
 
 class Slice(Funnel):

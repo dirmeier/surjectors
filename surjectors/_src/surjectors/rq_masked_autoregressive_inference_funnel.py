@@ -3,8 +3,8 @@ import warnings
 import distrax
 from chex import Array
 
-from surjectors.bijectors.masked_autoregressive import MaskedAutoregressive
-from surjectors.surjectors.affine_masked_autoregressive_inference_funnel import (  # noqa: E501
+from surjectors._src.bijectors.masked_autoregressive import MaskedAutoregressive
+from surjectors._src.surjectors.affine_masked_autoregressive_inference_funnel import (  # noqa: E501
     AffineMaskedAutoregressiveInferenceFunnel,
 )
 

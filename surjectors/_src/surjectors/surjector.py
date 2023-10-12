@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from chex import Array
 from jax import numpy as jnp
 
-from surjectors.surjectors._transform import Transform
+from surjectors._src.surjectors._transform import Transform
 
 _valid_kinds = [
     "inference_surjector",

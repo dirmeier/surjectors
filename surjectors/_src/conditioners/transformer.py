@@ -65,7 +65,7 @@ class _AutoregressiveTransformerEncoder(hk.Module):
 
 
 # pylint: disable=too-many-arguments
-def transformer_conditioner(
+def make_transformer(
     output_size,
     num_heads=2,
     num_layers=2,

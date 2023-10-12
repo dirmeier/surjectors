@@ -3,21 +3,43 @@ from typing import Tuple
 import chex
 import distrax
 import haiku as hk
-from chex import Array
+from jax import Array
 from distrax import Distribution
 
-from surjectors.surjectors.surjector import Surjector
+from surjectors._src.surjectors._transform import Transform
 
 
 class TransformedDistribution:
     """
     Distribution of a random variable transformed by a surjective or
-    bijectiive function
+    bijective function.
+
+    Can be used to define a pushforward measure.
+
+    Examples:
+        >>> import distrax
+        >>> from jax import numpy as jnp
+        >>> from surjectors import Slice, Chain, TransformedDistribution
+        >>> a = Slice(10)
+        >>> b = Slice(5)
+        >>> ab = Chain([a, b])
+        >>> TransformedDistribution(
+        >>>     distrax.Normal(jnp.zeros(5), jnp.ones(5)),
+        >>>     Chain([a, b])
+        >>> )
     """
 
-    def __init__(self, base_distribution: Distribution, surjector: Surjector):
+    def __init__(self, base_distribution: Distribution, transform: Transform):
+        """
+        Constructs a TransformedDistribution.
+
+        Args:
+            base_distribution: a distribution object
+            transform: some transformation
+        """
+
         self.base_distribution = base_distribution
-        self.surjector = surjector
+        self.transform = transform
 
     def __call__(self, method, **kwargs):
         return getattr(self, method)(**kwargs)
@@ -67,10 +89,10 @@ class TransformedDistribution:
             chex.assert_equal_rank([y, x])
             chex.assert_axis_dimension(y, 0, x.shape[0])
 
-        if isinstance(self.surjector, distrax.Bijector):
-            z, lc = self.surjector.inverse_and_log_det(y)
+        if isinstance(self.transform, distrax.Bijector):
+            z, lc = self.transform.inverse_and_log_det(y)
         else:
-            z, lc = self.surjector.inverse_and_likelihood_contribution(y, x=x)
+            z, lc = self.transform.inverse_and_likelihood_contribution(y, x=x)
         lp_z = self.base_distribution.log_prob(z)
         lp = lp_z + lc
         return z, lp
@@ -124,6 +146,6 @@ class TransformedDistribution:
             seed=hk.next_rng_key(),
             sample_shape=sample_shape,
         )
-        y, fldj = self.surjector.forward_and_likelihood_contribution(z, x=x)
+        y, fldj = self.transform.forward_and_likelihood_contribution(z, x=x)
         lp = lp_z - fldj
         return y, lp

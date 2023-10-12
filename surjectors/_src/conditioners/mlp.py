@@ -3,7 +3,7 @@ import jax
 from jax import numpy as jnp
 
 
-def mlp_conditioner(
+def make_mlp(
     dims,
     activation=jax.nn.gelu,
     w_init=hk.initializers.TruncatedNormal(stddev=0.01),

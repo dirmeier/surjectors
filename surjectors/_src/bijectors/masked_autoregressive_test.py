@@ -8,8 +8,8 @@ from jax import numpy as jnp
 from jax import random
 
 from surjectors import TransformedDistribution
-from surjectors.bijectors.masked_autoregressive import MaskedAutoregressive
-from surjectors.conditioners import MADE
+from surjectors._src.bijectors.masked_autoregressive import MaskedAutoregressive
+from surjectors._src.conditioners.nn.made import MADE
 from surjectors.util import unstack
 
 

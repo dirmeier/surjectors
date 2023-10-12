@@ -27,3 +27,19 @@ from surjectors._src.surjectors.rq_masked_coupling_inference_funnel import (
     RationalQuadraticSplineMaskedCouplingInferenceFunnel,
 )
 from surjectors._src.surjectors.slice import Slice
+
+__all__ = [
+    "LULinear",
+    "MaskedAutoregressive",
+    "MaskedCoupling",
+    "Permutation",
+    "TransformedDistribution",
+    "AffineMaskedAutoregressiveInferenceFunnel",
+    "AffineMaskedCouplingGenerativeFunnel",
+    "AffineMaskedCouplingInferenceFunnel",
+    "Augment",
+    "Chain",
+    "MLPFunnel",
+    "Slice",
+    "RationalQuadraticSplineMaskedCouplingInferenceFunnel",
+]

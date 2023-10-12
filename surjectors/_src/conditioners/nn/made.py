@@ -7,7 +7,7 @@ from tensorflow_probability.substrates.jax.bijectors.masked_autoregressive impor
     _make_dense_autoregressive_masks,
 )
 
-from surjectors.conditioners.nn.masked_linear import MaskedLinear
+from surjectors._src.conditioners.nn.masked_linear import MaskedLinear
 
 
 # pylint: disable=too-many-arguments, arguments-renamed

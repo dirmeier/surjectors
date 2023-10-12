@@ -1,6 +1,6 @@
 from abc import ABC
 
-from surjectors.surjectors.surjector import Surjector
+from surjectors._src.surjectors.surjector import Surjector
 
 
 # pylint: disable=too-many-arguments
