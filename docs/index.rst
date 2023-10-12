@@ -104,4 +104,5 @@ Surjectors is licensed under the Apache 2.0 License.
     :hidden:
 
     surjectors
+    surjectors.nn
     surjectors.util

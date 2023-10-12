@@ -3,7 +3,7 @@ import jax.nn
 import numpy as np
 from jax import numpy as jnp
 
-from surjectors.surjectors.surjector import Surjector
+from surjectors._src.surjectors.surjector import Surjector
 
 
 # pylint: disable=arguments-differ

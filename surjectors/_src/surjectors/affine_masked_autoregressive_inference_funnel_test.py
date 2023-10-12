@@ -6,15 +6,15 @@ from jax import numpy as jnp
 from jax import random
 
 from surjectors import TransformedDistribution
-from surjectors.conditioners import MADE
-from surjectors.conditioners.mlp import mlp_conditioner
-from surjectors.surjectors.affine_masked_autoregressive_inference_funnel import (  # noqa: E501
+from surjectors._src.conditioners.mlp import make_mlp
+from surjectors._src.conditioners.nn.made import MADE
+from surjectors._src.surjectors.affine_masked_autoregressive_inference_funnel import (  # noqa: E501
     AffineMaskedAutoregressiveInferenceFunnel,
 )
 
 
 def _decoder_fn(n_dim):
-    decoder_net = mlp_conditioner([4, 4, n_dim * 2])
+    decoder_net = make_mlp([4, 4, n_dim * 2])
 
     def _fn(z):
         params = decoder_net(z)

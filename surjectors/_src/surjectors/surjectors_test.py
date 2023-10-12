@@ -8,16 +8,20 @@ import pytest
 from jax import numpy as jnp
 from jax import random
 
-from surjectors import (
-    AffineMaskedCouplingGenerativeFunnel,
-    AffineMaskedCouplingInferenceFunnel,
-    Augment,
-    Chain,
-    MaskedCoupling,
-    Slice,
+from surjectors._src.bijectors.masked_coupling import MaskedCoupling
+from surjectors._src.conditioners.mlp import make_mlp
+from surjectors._src.distributions.transformed_distribution import (
     TransformedDistribution,
 )
-from surjectors.conditioners.mlp import mlp_conditioner
+from surjectors._src.surjectors.affine_masked_coupling_generative_funnel import (  # noqa: E501
+    AffineMaskedCouplingGenerativeFunnel,
+)
+from surjectors._src.surjectors.affine_masked_coupling_inference_funnel import (
+    AffineMaskedCouplingInferenceFunnel,
+)
+from surjectors._src.surjectors.augment import Augment
+from surjectors._src.surjectors.chain import Chain
+from surjectors._src.surjectors.slice import Slice
 from surjectors.util import make_alternating_binary_mask
 
 
@@ -51,7 +55,7 @@ def simple_dataset(rng_key, batch_size, n_dimension, n_latent):
 
 
 def _conditional_fn(n_dim):
-    decoder_net = mlp_conditioner([32, 32, n_dim * 2])
+    decoder_net = make_mlp([32, 32, n_dim * 2])
 
     def _fn(z):
         params = decoder_net(z)
@@ -82,7 +86,7 @@ def _get_generative_funnel_surjector(n_latent, n_dimension):
     return AffineMaskedCouplingGenerativeFunnel(
         n_dimension,
         _conditional_fn(n_latent - n_dimension),
-        mlp_conditioner([32, 32, n_latent * 2]),
+        make_mlp([32, 32, n_latent * 2]),
     )
 
 
@@ -95,7 +99,7 @@ def make_surjector(n_dimension, n_latent, surjector_fn):
                 layer = MaskedCoupling(
                     mask=mask,
                     bijector=_bijector_fn,
-                    conditioner=mlp_conditioner([32, 32, n_dimension * 2]),
+                    conditioner=make_mlp([32, 32, n_dimension * 2]),
                 )
             else:
                 layer = surjector_fn(n_latent, n_dimension)
@@ -121,7 +125,7 @@ def _get_inference_funnel_surjector(n_latent, n_dimension):
     return AffineMaskedCouplingInferenceFunnel(
         n_latent,
         _conditional_fn(n_dimension - n_latent),
-        mlp_conditioner([32, 32, n_dimension * 2]),
+        make_mlp([32, 32, n_dimension * 2]),
     )
 
 

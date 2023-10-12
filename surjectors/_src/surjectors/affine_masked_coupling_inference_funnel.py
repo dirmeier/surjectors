@@ -2,7 +2,7 @@ import distrax
 from chex import Array
 from jax import numpy as jnp
 
-from surjectors.surjectors.masked_coupling_inference_funnel import (
+from surjectors._src.surjectors.masked_coupling_inference_funnel import (
     MaskedCouplingInferenceFunnel,
 )
 

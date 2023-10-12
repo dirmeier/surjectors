@@ -3,13 +3,13 @@ import distrax
 import haiku as hk
 from jax import numpy as jnp
 
-from surjectors.bijectors.lu_linear import LULinear
-from surjectors.surjectors.funnel import Funnel
+from surjectors._src.bijectors.lu_linear import LULinear
+from surjectors._src.surjectors.funnel import Funnel
 
 
 class MLPFunnel(Funnel, hk.Module):
     """
-    Multilayer perceptron funnel
+    Multilayer perceptron funnel.
 
     The MLPFunnel is an inference surjection
     """

@@ -10,7 +10,7 @@ from jax import numpy as jnp
 from jax import random
 
 import surjectors
-from surjectors.conditioners.mlp import mlp_conditioner
+from surjectors._src.conditioners.mlp import make_mlp
 from surjectors.util import make_alternating_binary_mask
 
 
@@ -76,7 +76,7 @@ def masked_coupling_bijector(n_dim, td_ctor, flow_ctor):
         layer = flow_ctor(
             mask=mask,
             bijector=_bijector_fn,
-            conditioner=mlp_conditioner(
+            conditioner=make_mlp(
                 [8, n_dim * 2],
                 w_init=hk.initializers.TruncatedNormal(stddev=1.0),
                 b_init=jnp.ones,
@@ -102,7 +102,7 @@ def masked_conditional_coupling_bijector(n_dim):
             layer = surjectors.MaskedCoupling(
                 mask=mask,
                 bijector=_bijector_fn,
-                conditioner=mlp_conditioner([8, 8, n_dim * 2]),
+                conditioner=make_mlp([8, 8, n_dim * 2]),
             )
             layers.append(layer)
         chain = surjectors.Chain(layers)

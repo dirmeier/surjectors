@@ -1,8 +1,8 @@
 import haiku as hk
 from jax import numpy as jnp
 
-from surjectors.bijectors.masked_coupling import MaskedCoupling
-from surjectors.surjectors.funnel import Funnel
+from surjectors._src.bijectors.masked_coupling import MaskedCoupling
+from surjectors._src.surjectors.funnel import Funnel
 
 
 class MaskedCouplingInferenceFunnel(Funnel):

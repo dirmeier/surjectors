@@ -6,8 +6,9 @@ from jax import lax
 from jax import numpy as jnp
 from jax import random
 
-named_dataset = namedtuple("named_dataset", "y x")
+__all__ = ["make_alternating_binary_mask", "as_batch_iterator", "unstack"]
 
+named_dataset = namedtuple("named_dataset", "y x")
 
 # pylint: disable=too-few-public-methods
 class _DataLoader:
