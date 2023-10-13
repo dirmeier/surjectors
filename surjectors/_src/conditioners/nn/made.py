@@ -13,10 +13,15 @@ from surjectors._src.conditioners.nn.masked_linear import MaskedLinear
 # pylint: disable=too-many-arguments, arguments-renamed
 class MADE(hk.Module):
     """
-    Masked Autoregressive Density Estimator
+    Masked Autoregressive Density Estimator.
 
     Passing a value through a MADE will output a tensor of shape
     [..., input_size, n_params]
+
+    Examples:
+
+        >>> from surjectors.nn import MADE
+        >>> made = MADE(10, [32, 32], 2)
     """
 
     def __init__(
@@ -29,24 +34,17 @@ class MADE(hk.Module):
         activation: Callable[[jnp.ndarray], jnp.ndarray] = jax.nn.relu,
     ):
         """
-        Constructor
+        Construct a MADE network.
 
-        Parameters
-        ----------
-        input_size: int
-            number of input features
-        hidden_layer_sizes: Union[List[int], Tuple[int]]
-            list/tuple of ints describing the number of nodes in the hidden
-            layers
-        n_params: int
-            number of output parameters. For instance, if used as conditioner
-            of a affine bijector, should be 2 (mean and shift)
-        w_init: Optional[hk.initializers.Initializer]
-            a Haiku initializer
-        b_init : Optional[hk.initializers.Initializer]
-            a Haiku initializer
-        activation: Callable
-            an activation function
+        Args:
+            input_size: number of input features
+            hidden_layer_sizes: list/tuple of ints describing the number of
+                nodes in the hidden layers
+            n_params: number of output parameters. For instance, if used as
+                a conditioner of an affine bijector should be 2 (mean and scale)
+            w_init: a Haiku initializer
+            b_init: a Haiku initializer
+            activation: n activation function
         """
 
         super().__init__()

@@ -1,19 +1,62 @@
+from typing import Callable
+
 import haiku as hk
 from jax import numpy as jnp
 
 from surjectors._src.bijectors.masked_coupling import MaskedCoupling
-from surjectors._src.surjectors.funnel import Funnel
+from surjectors._src.surjectors.surjector import Surjector
 
 
-class MaskedCouplingInferenceFunnel(Funnel):
+class MaskedCouplingInferenceFunnel(Surjector):
     """
-    Inference funnel layer using masked coupling
+    A masked coupling inference funnel.
+
+    The MaskedCouplingInferenceFunnel is a coupling funnel,
+    i.e., dimensionality reducing transformation, that uses a masking mechanism
+    as in MaskedCouplingI. Its inner bijectors needs to be specified in
+    comparison to ASffineMaskedCouplingInferenceFunnel and
+    RationalQuadraticSplineMaskedCouplingInferenceFunnel.
+
+    Examples:
+
+        >>> import distrax
+        >>> from surjectors import MaskedCouplingInferenceFunnel
+        >>> from surjectors.nn import make_mlp
+        >>>
+        >>> def decoder_fn(n_dim):
+        >>>     def _fn(z):
+        >>>         params = make_mlp([4, 4, n_dim * 2])(z)
+        >>>         mu, log_scale = jnp.split(params, 2, -1)
+        >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+        >>>     return _fn
+        >>>
+        >>> def bijector_fn(params):
+        >>>     shift, log_scale = jnp.split(params, 2, -1)
+        >>>     return distrax.ScalarAffine(shift, jnp.exp(log_scale))
+        >>>
+        >>> layer = MaskedCouplingInferenceFunnel(
+        >>>     n_keep=10,
+        >>>     decoder=decoder_fn(10),
+        >>>     conditioner=make_mlp([4, 4, 10 * 2])(z),
+        >>>     bijector_fn=bijector_fn
+        >>> )
     """
 
-    def __init__(self, n_keep, decoder, conditioner, bijector_fn):
-        super().__init__(
-            n_keep, decoder, conditioner, None, "inference_surjector"
-        )
+    def __init__(self, n_keep: int, decoder: Callable, conditioner: Callable, bijector_fn: Callable):
+        """
+        Constructs a MaskedCouplingInferenceFunnel layer.
+
+        Args:
+            n_keep: number of dimensions to keep
+            decoder: a callable that returns a conditional probabiltiy
+                distribution when called
+            conditioner: a conditioning neural network
+            bijector_fn: an inner bijector function to be used
+        """
+
+        self.n_keep = n_keep
+        self.decoder = decoder
+        self.conditioner = conditioner
         self.bijector_fn = bijector_fn
 
     def _mask(self, array):
@@ -22,7 +65,7 @@ class MaskedCouplingInferenceFunnel(Funnel):
         return mask
 
     def _inner_bijector(self, mask):
-        return MaskedCoupling(mask, self._conditioner, self.bijector_fn)
+        return MaskedCoupling(mask, self.conditioner, self.bijector_fn)
 
     def inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
         # TODO(simon): remote the conditioning here?

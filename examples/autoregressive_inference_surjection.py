@@ -13,14 +13,14 @@ from surjectors import (
     AffineMaskedAutoregressiveInferenceFunnel,
     Chain,
     MaskedAutoregressive,
-    TransformedDistribution,
+    TransformedDistribution, Permutation,
 )
-from surjectors.conditioners import MADE, mlp_conditioner
+from surjectors.nn import MADE, make_mlp
 from surjectors.util import as_batch_iterator, unstack
 
 
 def _decoder_fn(n_dim):
-    decoder_net = mlp_conditioner([4, 4, n_dim * 2])
+    decoder_net = make_mlp([4, 4, n_dim * 2])
 
     def _fn(z):
         params = decoder_net(z)
@@ -53,6 +53,8 @@ def make_model(n_dimensions):
                     bijector_fn=_made_bijector_fn,
                 )
             layers.append(layer)
+            # TODO(simon): needs to change order
+            # layers.append(Permutation(order, 1))
         chain = Chain(layers)
 
         base_distribution = distrax.Independent(

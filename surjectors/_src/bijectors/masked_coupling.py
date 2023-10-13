@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Callable
 
 import distrax
 from distrax._src.utils import math
@@ -11,17 +11,48 @@ from surjectors._src.surjectors.surjector import Surjector
 # pylint: disable=too-many-arguments, arguments-renamed
 class MaskedCoupling(distrax.MaskedCoupling, Surjector):
     """
-    Masked coupling layer
+    A masked coupling layer.
+
+    Examples:
+
+        >>> import distrax
+        >>> from surjectors import MaskedCoupling
+        >>> from surjectors.nn import make_mlp
+        >>> from surjectors.util import make_alternating_binary_mask
+        >>>
+        >>> def bijector_fn(params):
+        >>>     mu, log_scale = jnp.split(params, 2, -1)
+        >>>     return distrax.ScalarAffine(means, jnp.exp(log_scales)
+        >>>
+        >>> layer = MaskedAutoregressive(
+        >>>     mask=make_alternating_binary_mask(10, True)
+        >>>     bijector=bijector_fn,
+        >>>     conditioner=make_mlp([8, 8, 10 * 2]),
+        >>> )
     """
 
     def __init__(
         self,
         mask: Array,
-        conditioner,
-        bijector,
+        conditioner: Callable,
+        bijector: Callable,
         event_ndims: Optional[int] = None,
         inner_event_ndims: int = 0,
     ):
+        """
+        Construct a masked coupling layer.
+
+        Args:
+            mask: a boolean mask of length n_dim. A value
+                of True indicates that the corresponding input remains unchanged
+            conditioner: a function that computes the parameters of the inner
+                bijector
+            bijector: a callable that returns the inner bijector that will be
+                used to transform the input
+            event_ndims: the number of array dimensions the bijector operates on
+            inner_event_ndims: the number of array dimensions the inner bijector
+                operates on
+        """
         super().__init__(
             mask, conditioner, bijector, event_ndims, inner_event_ndims
         )

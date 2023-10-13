@@ -1,27 +1,54 @@
+from typing import Callable
+
 import chex
 import distrax
 import haiku as hk
 from jax import numpy as jnp
 
 from surjectors._src.bijectors.lu_linear import LULinear
-from surjectors._src.surjectors.funnel import Funnel
 
 
-class MLPFunnel(Funnel, hk.Module):
+from surjectors._src.surjectors.surjector import Surjector
+
+
+class MLPInferenceFunnel(Surjector, hk.Module):
     """
-    Multilayer perceptron funnel.
+    A multilayer perceptron inference funnel.
 
-    The MLPFunnel is an inference surjection
+    Examples:
+
+        >>> from surjectors import MLPInferenceFunnel
+        >>> from surjectors.nn import make_mlp
+        >>>
+        >>> def decoder_fn(n_dim):
+        >>>     def _fn(z):
+        >>>         params = make_mlp([4, 4, n_dim * 2])(y)
+        >>>         mu, log_scale = jnp.split(params, 2, -1)
+        >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+        >>>     return _fn
+        >>>
+        >>> decoder = decoder_fn(5)
+        >>> a = MLPInferenceFunnel(10, decoder)
     """
 
-    def __init__(self, n_keep, decoder, dtype=jnp.float32):
-        self._r = LULinear(n_keep, False, dtype)
+    def __init__(self, n_keep: int, decoder: Callable):
+        """
+        Constructs a MLPInferenceFunnel layer.
+
+        Args:
+            n_keep: number of dimensions to keep
+            decoder: a conditional probability function
+            dtype: parameter dtype
+        """
+
+        super().__init__()
+        self._r = LULinear(n_keep, False)
         self._w_prime = hk.Linear(n_keep, True)
-        self._decoder = decoder
-        super().__init__(n_keep, decoder, None, None, "inference_surjector")
+        self.decoder = decoder
+        self.n_keep = n_keep
 
     def split_input(self, array):
-        """Split an array"""
+        """Split an array into halves"""
         spl = jnp.split(array, [self.n_keep], axis=-1)
         return spl
 
@@ -33,7 +60,7 @@ class MLPFunnel(Funnel, hk.Module):
         return z, lp + jac_det
 
     def _decode(self, array):
-        mu, log_scale = self._decoder(array)
+        mu, log_scale = self.decoder(array)
         distr = distrax.MultivariateNormalDiag(mu, jnp.exp(log_scale))
         return distr
 

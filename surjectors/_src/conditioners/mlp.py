@@ -10,11 +10,15 @@ def make_mlp(
     b_init=jnp.zeros,
 ):
     """
-    Create a conditioner network based on an MLP
+    Create a conditioner network based on an MLP.
 
-    Returns
-    -------
-    hk.Module
+    Args:
+        dims: dimensions of hidden layers and last layer
+        activation: a JAX activation function
+        w_init: a haiku initializer
+        b_init: a haiku initializer
+
+    Returns:
         a transformable haiku neural network module
     """
 

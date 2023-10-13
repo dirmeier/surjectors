@@ -1,6 +1,5 @@
 from typing import Callable
 
-import distrax
 import haiku as hk
 from chex import Array
 from jax import numpy as jnp
@@ -8,22 +7,21 @@ from jax import numpy as jnp
 from surjectors._src.bijectors.masked_autoregressive import MaskedAutoregressive
 from surjectors._src.surjectors.surjector import Surjector
 
-from surjectors.util import unstack
 
-
-class AffineMaskedAutoregressiveInferenceFunnel(Surjector):
+class MaskedAutoregressiveInferenceFunnel(Surjector):
     """
-    A masked affine autoregressive funnel layer.
+    A masked autoregressive funnel layer.
 
-    The AffineMaskedAutoregressiveInferenceFunnel is an autoregressive funnel,
-    i.e., dimensionality reducing transformation, that uses an affine
-    transformation from data to latent space using a masking mechanism as in
-    MaskedAutoegressive.
+    The MaskedAutoregressiveInferenceFunnel is an autoregressive funnel,
+    i.e., dimensionality reducing transformation, that uses a masking mechanism
+    as in MaskedAutoegressive. Its inner bijectors needs to be specified in
+    comparison to AffineMaskedAutoregressiveInferenceFunnel and
+    RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel.
 
     Examples:
 
         >>> import distrax
-        >>> from surjectors import AffineMaskedAutoregressiveInferenceFunnel
+        >>> from surjectors import MaskedAutoregressiveInferenceFunnel
         >>> from surjectors.nn import MADE, make_mlp
         >>> from surjectors.util import unstack
         >>>
@@ -34,34 +32,37 @@ class AffineMaskedAutoregressiveInferenceFunnel(Surjector):
         >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
         >>>     return _fn
         >>>
-        >>> layer = AffineMaskedAutoregressiveInferenceFunnel(
+        >>> def bijector_fn(params: Array):
+        >>>     shift, log_scale = unstack(params, axis=-1)
+        >>>     return distrax.ScalarAffine(shift, jnp.exp(log_scale))
+        >>>
+        >>> layer = MaskedAutoregressiveInferenceFunnel(
         >>>     n_keep=10,
         >>>     decoder=decoder_fn(10),
         >>>     conditioner=MADE(10, [8, 8], 2),
+        >>>     bijector_fn=bijector_fn
         >>> )
     """
 
-    def __init__(self, n_keep: int, decoder: Callable, conditioner: Callable):
+    def __init__(self, n_keep: int, decoder: Callable, conditioner: Callable, bijector_fn: Callable):
         """
-        Constructs a AffineMaskedAutoregressiveInferenceFunnel layer.
+        Constructs a MaskedAutoregressiveInferenceFunnel layer.
 
         Args:
             n_keep: number of dimensions to keep
             decoder: a callable that returns a conditional probabiltiy
                 distribution when called
             conditioner: a MADE neural network
+            bijector_fn: an inner bijector function to be used
         """
 
-        super().__init__(
-            n_keep, decoder, conditioner, None, "inference_surjector"
-        )
+        self.n_keep = n_keep
+        self.decoder = decoder
+        self.conditioner = conditioner
+        self.bijector_fn = bijector_fn
 
     def _inner_bijector(self):
-        def _bijector_fn(params: Array):
-            shift, log_scale = unstack(params, axis=-1)
-            return distrax.ScalarAffine(shift, jnp.exp(log_scale))
-
-        return MaskedAutoregressive(self._conditioner, _bijector_fn)
+        return MaskedAutoregressive(self._conditioner, self.bijector_fn)
 
     def inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
         y_plus, y_minus = y[..., : self.n_keep], y[..., self.n_keep :]

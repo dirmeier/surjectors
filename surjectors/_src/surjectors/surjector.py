@@ -1,71 +1,85 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 
-from chex import Array
-from jax import numpy as jnp
+from jax import Array
 
-from surjectors._src.surjectors._transform import Transform
-
-_valid_kinds = [
-    "inference_surjector",
-    "generative_surjector",
-    "bijector",
-    "surjector",
-]
+from surjectors._src._transform import Transform
 
 
 # pylint: disable=too-many-arguments
 class Surjector(Transform, ABC):
-    """
-    Surjector base class
-    """
+    """A surjective transformation."""
 
-    def __init__(self, n_keep, decoder, encoder, kind, dtype=jnp.float32):
-        if kind not in _valid_kinds:
-            raise ValueError(
-                "'kind' argument needs to be either of: "
-                + "/".join(_valid_kinds)
-            )
-        if kind == _valid_kinds[1] and encoder is None:
-            raise ValueError(
-                "please provide an encoder if you use a generative surjection"
-            )
-
-        self._dtype = dtype
-        self._kind = kind
-        self._decoder = decoder
-        self._encoder = encoder
-        self._n_keep = n_keep
-
-    @abstractmethod
-    def inverse_and_likelihood_contribution(self, y: Array, **kwargs):
-        pass
-
-    @abstractmethod
-    def forward_and_likelihood_contribution(self, z: Array, **kwargs):
-        pass
-
-    @property
-    def n_keep(self):
+    def inverse_and_likelihood_contribution(self, y: Array, x: Array = None, **kwargs):
         """
-        Returns the Number of elements of the inverse transformation to keep
+        Compute the inverse transformation and its likelihood contribution.
+
+        Args:
+            y: event for which the inverse and likelihood contribution is
+                computed
+            x: event to condition on
+            kwargs: additional keyword arguments
+
+        Returns:
+            tuple of two arrays of floats. The first one is the inverse
+            transformation, the second one its likelihood contribution
         """
 
-        return self._n_keep
+        return self._inverse_and_likelihood_contribution(y, **kwargs)
 
-    @property
-    def dtype(self):
-        """Returns the dtype of the transformation"""
+    @abstractmethod
+    def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
+        pass
 
-        return self._dtype
+    def forward_and_likelihood_contribution(self, z: Array, x: Array = None, **kwargs):
+        """
+        Compute the forward transformation and its likelihood contribution.
 
-    @property
-    def decoder(self):
-        """Returns the decoder network"""
+        Args:
+            z: event for which the forward transform and likelihood contribution
+                is computed
+            x: event to condition on
+            kwargs: additional keyword arguments
 
-        return self._decoder
+        Returns:
+            tuple of two arrays of floats. The first one is the forward
+            transformation, the second one its likelihood contribution
+        """
 
-    @property
-    def encoder(self):
-        """Returns the encoder network"""
+        return self._forward_and_likelihood_contribution(z, **kwargs)
 
-        return self._encoder
+    @abstractmethod
+    def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
+        pass
+
+    def forward(self, z: Array, x:Array=None, **kwargs):
+        """
+        Computes the forward transformation.
+
+        Args:
+            z: event for which the forward transform is computed
+            x: event to condition on
+            kwargs: additional keyword arguments
+
+        Returns:
+            result of the forward transformation
+        """
+
+        y, _ = self.forward_and_likelihood_contribution(z, x=x, **kwargs)
+        return y
+
+    def inverse(self, y: Array, x:Array = None, **kwargs):
+        """
+        Compute the inverse transformation
+
+        Args:
+            y: event for which the inverse transform is computed
+            x: event to condition on
+            kwargs: additional keyword arguments
+
+        Returns:
+            result of the inverse transformation
+        """
+
+        z, _ = self.inverse_and_likelihood_contribution(y, x=x, **kwargs)
+        return z

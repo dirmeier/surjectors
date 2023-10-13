@@ -1,17 +1,33 @@
 from typing import Callable
 
+import distrax
 from distrax._src.utils import math
 from jax import numpy as jnp
 
-from surjectors._src.bijectors._bijector import _Bijector
+from surjectors._src.bijectors.bijector import Bijector
 from surjectors._src.conditioners.nn.made import MADE
 from surjectors._src.distributions.transformed_distribution import Array
 
 
 # pylint: disable=too-many-arguments, arguments-renamed
-class MaskedAutoregressive(_Bijector):
+class MaskedAutoregressive(Bijector):
     """
-    Masked autoregressive layer
+    A masked autoregressive layer.
+
+    Examples:
+
+        >>> import distrax
+        >>> from surjectors import MaskedAutoregressive
+        >>> from surjectors.util import unstack
+        >>>
+        >>> def bijector_fn(params):
+        >>>     means, log_scales = unstack(params, -1)
+        >>>     return distrax.Inverse(distrax.ScalarAffine(means, jnp.exp(log_scales)))
+        >>>
+        >>> layer = MaskedAutoregressive(
+        >>>     conditioner=MADE(10, [8, 8], 2),
+        >>>     bijector_fn=bijector_fn
+        >>> )
     """
 
     def __init__(
@@ -22,6 +38,19 @@ class MaskedAutoregressive(_Bijector):
         inner_event_ndims: int = 0,
         dtype=jnp.float32,
     ):
+        """
+        Construct a masked autoregressive layer.
+
+        Args:
+            conditioner: a MADE network
+            bijector_fn: a callable that returns the inner bijector that will
+                be used to transform the input
+            event_ndims: the number of array dimensions the bijector operates on
+            inner_event_ndims: tthe number of array dimensions the bijector
+                operates on
+            dtype: parameter dtype
+        """
+
         if event_ndims is not None and event_ndims < inner_event_ndims:
             raise ValueError(
                 f"`event_ndims={event_ndims}` should be at least as"

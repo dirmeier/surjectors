@@ -6,7 +6,7 @@ import haiku as hk
 from jax import Array
 from distrax import Distribution
 
-from surjectors._src.surjectors._transform import Transform
+from surjectors._src._transform import Transform
 
 
 class TransformedDistribution:
@@ -17,12 +17,15 @@ class TransformedDistribution:
     Can be used to define a pushforward measure.
 
     Examples:
+
         >>> import distrax
         >>> from jax import numpy as jnp
         >>> from surjectors import Slice, Chain, TransformedDistribution
+        >>>
         >>> a = Slice(10)
         >>> b = Slice(5)
         >>> ab = Chain([a, b])
+        >>>
         >>> TransformedDistribution(
         >>>     distrax.Normal(jnp.zeros(5), jnp.ones(5)),
         >>>     Chain([a, b])
@@ -50,14 +53,14 @@ class TransformedDistribution:
 
         Parameters
         ----------
-        y: jnp.ndarray
+        y: Array
             event for which the log probability is computed
-        x: Optional[jnp.ndarray]
+        x: Optional[Array]
             optional event that is used to condition
 
         Returns
         -------
-        jnp.ndarray
+        Array
             array of floats of log probabilities
         """
 
@@ -73,14 +76,14 @@ class TransformedDistribution:
 
         Parameters
         ----------
-        y: jnp.ndarray
+        y: Array
             event for which the inverse and log probability is computed
-        x: Optional[jnp.ndarray]
+        x: Optional[Array]
             optional event that is used to condition
 
         Returns
         -------
-        Tuple[jnp.ndarray, jnp.ndarray]
+        Tuple[Array, Array]
             tuple of two arrays of floats. The first one is the inverse
             transformation, the second one is the log probability
         """
@@ -105,13 +108,13 @@ class TransformedDistribution:
         ----------
         sample_shape: Tuple[int]
             the size of the sample to be drawn
-        x: Optional[jnp.ndarray]
+        x: Optional[Array]
             optional event that is used to condition the samples. If x is given
             sample_shape is ignored
 
         Returns
         -------
-        jnp.ndarray
+        Array
             a sample from the transformed distribution
         """
 
@@ -126,13 +129,13 @@ class TransformedDistribution:
         ----------
         sample_shape: Tuple[int]
             the size of the sample to be drawn
-        x: Optional[jnp.ndarray]
+        x: Optional[Array]
             optional event that is used to condition the samples. If x is given
             sample_shape is ignored
 
         Returns
         -------
-        Tuple[jnp.ndarray, jnp.ndarray]
+        Tuple[Array, Array]
             tuple of two arrays of floats. The first one is the drawn sample
             transformation, the second one is its log probability
         """
