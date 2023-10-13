@@ -10,12 +10,9 @@ from surjectors._src.surjectors.masked_coupling_inference_funnel import (
 class RationalQuadraticSplineMaskedCouplingInferenceFunnel(
     MaskedCouplingInferenceFunnel
 ):
-    """
-    A masked coupling inference funnel that uses a rational quatratic spline
-    as a transformation.
+    """A masked coupling inference funnel that uses a rational quatratic spline.
 
     Examples:
-
         >>> import distrax
         >>> from jax import numpy as jnp
         >>> from surjectors import RationalQuadraticSplineMaskedCouplingInferenceFunnel
@@ -36,8 +33,7 @@ class RationalQuadraticSplineMaskedCouplingInferenceFunnel(
     """
 
     def __init__(self, n_keep, decoder, conditioner, range_min, range_max):
-        """
-        Constructs a RationalQuadraticSplineMaskedCouplingInferenceFunnel layer.
+        """Construct a RationalQuadraticSplineMaskedCouplingInferenceFunnel layer.
 
         Args:
             n_keep: number of dimensions to keep

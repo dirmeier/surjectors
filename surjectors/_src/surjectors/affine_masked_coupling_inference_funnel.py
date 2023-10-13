@@ -34,7 +34,7 @@ class AffineMaskedCouplingInferenceFunnel(MaskedCouplingInferenceFunnel):
         >>> )
     """
 
-    def __init__(self, n_keep: int, decoder :Callable, conditioner :Callable):
+    def __init__(self, n_keep: int, decoder: Callable, conditioner: Callable):
         """
         Constructs a AffineMaskedCouplingInferenceFunnel layer.
 

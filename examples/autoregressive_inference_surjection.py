@@ -13,7 +13,7 @@ from surjectors import (
     AffineMaskedAutoregressiveInferenceFunnel,
     Chain,
     MaskedAutoregressive,
-    TransformedDistribution, Permutation,
+    TransformedDistribution,
 )
 from surjectors.nn import MADE, make_mlp
 from surjectors.util import as_batch_iterator, unstack

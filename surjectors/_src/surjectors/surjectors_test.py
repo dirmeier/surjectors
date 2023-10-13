@@ -1,3 +1,4 @@
+# noqa
 # pylint: skip-file
 
 import distrax

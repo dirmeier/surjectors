@@ -43,7 +43,7 @@ class Slice(Surjector):
         spl = jnp.split(array, [self.n_keep], axis=-1)
         return spl
 
-    def inverse_and_likelihood_contribution(self, y, x: Array = None, **kwargs):
+    def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
         z, y_minus = self.split_input(y)
         z_condition = z
         if x is not None:
@@ -51,7 +51,7 @@ class Slice(Surjector):
         lc = self.decoder(z_condition).log_prob(y_minus)
         return z, lc
 
-    def forward_and_likelihood_contribution(self, z, x: Array = None, **kwargs):
+    def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
         z_condition = z
         if x is not None:
             z_condition = jnp.concatenate([z, x], axis=-1)
@@ -61,7 +61,3 @@ class Slice(Surjector):
         y = jnp.concatenate([z, y_minus], axis=-1)
 
         return y, lc
-
-    def forward(self, z, x: Array = None):
-        y, _ = self.forward_and_likelihood_contribution(z, x)
-        return y
