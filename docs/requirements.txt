@@ -7,6 +7,7 @@ seaborn
 sphinx
 sphinx-autobuild
 sphinx-book-theme
+sphinx-copybutton
 sphinx-math-dollar
 sphinx_autodoc_typehints
 sphinx_design
