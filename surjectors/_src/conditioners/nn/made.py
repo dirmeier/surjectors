@@ -2,6 +2,7 @@ from typing import Callable, List, Optional, Tuple, Union
 
 import haiku as hk
 import jax
+from jax import Array
 from jax import numpy as jnp
 from tensorflow_probability.substrates.jax.bijectors.masked_autoregressive import (  # noqa: E501
     _make_dense_autoregressive_masks,
@@ -12,14 +13,12 @@ from surjectors._src.conditioners.nn.masked_linear import MaskedLinear
 
 # pylint: disable=too-many-arguments, arguments-renamed
 class MADE(hk.Module):
-    """
-    Masked Autoregressive Density Estimator.
+    """Masked Autoregressive Density Estimator.
 
     Passing a value through a MADE will output a tensor of shape
     [..., input_size, n_params]
 
     Examples:
-
         >>> from surjectors.nn import MADE
         >>> made = MADE(10, [32, 32], 2)
     """
@@ -33,8 +32,7 @@ class MADE(hk.Module):
         b_init: Optional[hk.initializers.Initializer] = None,
         activation: Callable[[jnp.ndarray], jnp.ndarray] = jax.nn.relu,
     ):
-        """
-        Construct a MADE network.
+        """Construct a MADE network.
 
         Args:
             input_size: number of input features
@@ -46,7 +44,6 @@ class MADE(hk.Module):
             b_init: a Haiku initializer
             activation: n activation function
         """
-
         super().__init__()
         self.input_size = input_size
         self.output_sizes = hidden_layer_sizes
@@ -69,7 +66,16 @@ class MADE(hk.Module):
             )
         self.layers = tuple(layers)
 
-    def __call__(self, y: jnp.ndarray, x: jnp.ndarray = None) -> jnp.ndarray:
+    def __call__(self, y: Array, x: Array = None):
+        """Apply the MADE network.
+
+        Args:
+            y: input to be transformed
+            x: conditioning variable
+
+        Returns:
+            the transformed value
+        """
         output = self.layers[0](y)
         if x is not None:
             context = hk.Linear(
@@ -83,7 +89,3 @@ class MADE(hk.Module):
                 output = self.activation(output)
         output = hk.Reshape((self.input_size, self.n_params))(output)
         return output
-
-    def reverse(self):
-        """Not implemented"""
-        raise NotImplementedError("")

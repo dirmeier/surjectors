@@ -4,7 +4,7 @@ import distrax
 from chex import Array
 from jax import numpy as jnp
 
-from surjectors._src.bijectors.masked_autoregressive import MaskedAutoregressive
+from surjectors._src.conditioners.nn.made import MADE
 from surjectors._src.surjectors.masked_autoregressive_inference_funnel import (
     MaskedAutoregressiveInferenceFunnel,
 )
@@ -14,8 +14,7 @@ from surjectors.util import unstack
 class AffineMaskedAutoregressiveInferenceFunnel(
     MaskedAutoregressiveInferenceFunnel
 ):
-    """
-    A masked affine autoregressive funnel layer.
+    """A masked affine autoregressive funnel layer.
 
     The AffineMaskedAutoregressiveInferenceFunnel is an autoregressive funnel,
     i.e., dimensionality reducing transformation, that uses an affine
@@ -23,7 +22,6 @@ class AffineMaskedAutoregressiveInferenceFunnel(
     MaskedAutoegressive.
 
     Examples:
-
         >>> import distrax
         >>> from surjectors import AffineMaskedAutoregressiveInferenceFunnel
         >>> from surjectors.nn import MADE, make_mlp
@@ -33,7 +31,9 @@ class AffineMaskedAutoregressiveInferenceFunnel(
         >>>     def _fn(z):
         >>>         params = make_mlp([4, 4, n_dim * 2])(z)
         >>>         mu, log_scale = jnp.split(params, 2, -1)
-        >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+        >>>         return distrax.Independent(
+        >>>             distrax.Normal(mu, jnp.exp(log_scale))
+        >>>         )
         >>>     return _fn
         >>>
         >>> layer = AffineMaskedAutoregressiveInferenceFunnel(
@@ -43,9 +43,8 @@ class AffineMaskedAutoregressiveInferenceFunnel(
         >>> )
     """
 
-    def __init__(self, n_keep: int, decoder: Callable, conditioner: Callable):
-        """
-        Constructs a AffineMaskedAutoregressiveInferenceFunnel layer.
+    def __init__(self, n_keep: int, decoder: Callable, conditioner: MADE):
+        """Constructs a AffineMaskedAutoregressiveInferenceFunnel layer.
 
         Args:
             n_keep: number of dimensions to keep
@@ -54,11 +53,8 @@ class AffineMaskedAutoregressiveInferenceFunnel(
             conditioner: a MADE neural network
         """
 
-        def _inner_bijector(self):
-            def _bijector_fn(params: Array):
-                shift, log_scale = unstack(params, axis=-1)
-                return distrax.ScalarAffine(shift, jnp.exp(log_scale))
+        def bijector_fn(params: Array):
+            shift, log_scale = unstack(params, axis=-1)
+            return distrax.ScalarAffine(shift, jnp.exp(log_scale))
 
-            return MaskedAutoregressive(self._conditioner, _bijector_fn)
-
-        super().__init__(n_keep, decoder, conditioner, _inner_bijector)
+        super().__init__(n_keep, decoder, conditioner, bijector_fn)

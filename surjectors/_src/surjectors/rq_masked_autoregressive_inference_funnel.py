@@ -1,32 +1,36 @@
 import warnings
+from typing import Callable
 
 import distrax
 from chex import Array
 
-from surjectors import MaskedAutoregressiveInferenceFunnel
 from surjectors._src.bijectors.masked_autoregressive import MaskedAutoregressive
+from surjectors._src.conditioners.nn.made import MADE
+from surjectors._src.surjectors.masked_autoregressive_inference_funnel import (
+    MaskedAutoregressiveInferenceFunnel,
+)
 
 
 # pylint: disable=too-many-arguments, arguments-renamed
 class RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel(
     MaskedAutoregressiveInferenceFunnel
 ):
-    """
-    A masked autoregressive inference funnel that uses a rational quatratic
-    spline as a transformation.
+    """A masked autoregressive inference funnel that uses RQ-NSFs.
 
     Examples:
-
         >>> import distrax
         >>> from jax import numpy as jnp
-        >>> from surjectors import RationalQuadraticSplineMaskedCouplingInferenceFunnel
+        >>> from surjectors import \
+        >>>     RationalQuadraticSplineMaskedCouplingInferenceFunnel
         >>> from surjectors.nn import make_mlp
         >>>
         >>> def decoder_fn(n_dim):
         >>>     def _fn(z):
         >>>         params = make_mlp([4, 4, n_dim * 2])(z)
         >>>         mu, log_scale = jnp.split(params, 2, -1)
-        >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+        >>>         return distrax.Independent(
+        >>>             distrax.Normal(mu, jnp.exp(log_scale))
+        >>>         )
         >>>     return _fn
         >>>
         >>> layer = RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel(
@@ -36,7 +40,24 @@ class RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel(
         >>> )
     """
 
-    def __init__(self, n_keep, decoder, conditioner, range_min, range_max):
+    def __init__(
+        self,
+        n_keep: int,
+        decoder: Callable,
+        conditioner: MADE,
+        range_min: float,
+        range_max: float,
+    ):
+        """Constructs a RQ-NSF inference funnel.
+
+        Args:
+            n_keep: number of dimensions to keep
+            decoder: a callable that returns a conditional probabiltiy
+                distribution when called
+            conditioner: a conditioning neural network
+            range_min: minimum range of the spline
+            range_max: maximum range of the spline
+        """
         warnings.warn("class has not been tested. use at own risk")
         self.range_min = range_min
         self.range_max = range_max

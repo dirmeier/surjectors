@@ -9,8 +9,7 @@ def make_mlp(
     w_init=hk.initializers.TruncatedNormal(stddev=0.01),
     b_init=jnp.zeros,
 ):
-    """
-    Create a conditioner network based on an MLP.
+    """Create a conditioner network based on an MLP.
 
     Args:
         dims: dimensions of hidden layers and last layer
@@ -21,7 +20,6 @@ def make_mlp(
     Returns:
         a transformable haiku neural network module
     """
-
     return hk.nets.MLP(
         output_sizes=dims,
         w_init=w_init,

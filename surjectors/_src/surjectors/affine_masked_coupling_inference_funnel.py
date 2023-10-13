@@ -10,11 +10,9 @@ from surjectors._src.surjectors.masked_coupling_inference_funnel import (
 
 
 class AffineMaskedCouplingInferenceFunnel(MaskedCouplingInferenceFunnel):
-    """
-    A masked coupling inference funnel that uses an affine transformation.
+    """A masked coupling inference funnel that uses an affine transformation.
 
     Examples:
-
         >>> import distrax
         >>> from jax import numpy as jnp
         >>> from surjectors import AffineMaskedCouplingInferenceFunnel
@@ -24,7 +22,9 @@ class AffineMaskedCouplingInferenceFunnel(MaskedCouplingInferenceFunnel):
         >>>     def _fn(z):
         >>>         params = make_mlp([4, 4, n_dim * 2])(z)
         >>>         mu, log_scale = jnp.split(params, 2, -1)
-        >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+        >>>         return distrax.Independent(
+        >>>             distrax.Normal(mu, jnp.exp(log_scale))
+        >>>         )
         >>>     return _fn
         >>>
         >>> layer = AffineMaskedCouplingInferenceFunnel(
@@ -35,8 +35,7 @@ class AffineMaskedCouplingInferenceFunnel(MaskedCouplingInferenceFunnel):
     """
 
     def __init__(self, n_keep: int, decoder: Callable, conditioner: Callable):
-        """
-        Constructs a AffineMaskedCouplingInferenceFunnel layer.
+        """Constructs a AffineMaskedCouplingInferenceFunnel layer.
 
         Args:
             n_keep: number of dimensions to keep
@@ -45,8 +44,8 @@ class AffineMaskedCouplingInferenceFunnel(MaskedCouplingInferenceFunnel):
             conditioner: a conditioning neural network
         """
 
-        def _bijector_fn(params: Array):
+        def bijector_fn(params: Array):
             shift, log_scale = jnp.split(params, 2, axis=-1)
             return distrax.ScalarAffine(shift, jnp.exp(log_scale))
 
-        super().__init__(n_keep, decoder, conditioner, _bijector_fn)
+        super().__init__(n_keep, decoder, conditioner, bijector_fn)

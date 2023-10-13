@@ -73,8 +73,7 @@ def make_transformer(
     dropout_rate=0.1,
     widening_factor=4,
 ):
-    """
-    Create a conditioner network based on a transformer.
+    """Create a conditioner network based on a transformer.
 
     Args:
         output_size: output size of the last layer
@@ -87,7 +86,6 @@ def make_transformer(
     Returns:
         a transformable haiku neural network module
     """
-
     linear = hk.Linear(key_size * num_heads)
     encoder = _EncoderLayer(
         num_heads, num_layers, key_size, dropout_rate, widening_factor

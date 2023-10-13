@@ -6,30 +6,29 @@ from jax import numpy as jnp
 from surjectors._src.surjectors.surjector import Surjector
 
 
-# pylint: disable=arguments-differ
+# pylint: disable=arguments-differ,too-many-instance-attributes
 class LULinear(Surjector):
-    """
-    An inference funnel based on the LU composition.
+    """An inference funnel based on the LU composition.
 
     Examples:
-
         >>> from surjectors import LULinear
         >>> layer = LULinear(10)
     """
 
-    def __init__(self, n_keep, with_bias=False):
-        """
-        Constructs an LULinear layer.
+    def __init__(self, n_keep, with_bias=False, dtype=jnp.float32):
+        """Constructs a LULinear layer.
 
         Args:
             n_keep: number of dimensions to keep
             with_bias: use a bias term or not
+            dtype: parameter dtype
         """
-
-        super().__init__(n_keep, None, None, "bijection")
         if with_bias:
             raise NotImplementedError()
 
+        self.n_keep = n_keep
+        self.with_bias = with_bias
+        self.dtype = dtype
         n_triangular_entries = ((n_keep - 1) * n_keep) // 2
 
         self._lower_indices = np.tril_indices(n_keep, k=-1)
@@ -64,11 +63,11 @@ class LULinear(Surjector):
     def _inverse_likelihood_contribution(self):
         return jnp.sum(jnp.log(self._upper_entries))
 
-    def inverse_and_likelihood_contribution(self, y):
+    def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
         L, U = self._to_lower_and_upper_matrices()
         z = jnp.dot(jnp.dot(y, U), L)
         lc = self._inverse_likelihood_contribution()
         return z, lc * jnp.ones_like(z)
 
-    def forward_and_likelihood_contribution(self, z):
-        pass
+    def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
+        raise NotImplementedError()

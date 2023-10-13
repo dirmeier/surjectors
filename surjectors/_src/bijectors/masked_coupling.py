@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional
 
 import distrax
 from distrax._src.utils import math
@@ -6,23 +6,20 @@ from jax import numpy as jnp
 
 from surjectors._src.bijectors.bijector import Bijector
 from surjectors._src.distributions.transformed_distribution import Array
-from surjectors._src.surjectors.surjector import Surjector
 
 
 # pylint: disable=too-many-arguments, arguments-renamed
-class MaskedCoupling(distrax.MaskedCoupling, Bijector):
-    """
-    A masked coupling layer.
+class MaskedCoupling(Bijector, distrax.MaskedCoupling):
+    """A masked coupling layer.
 
     Examples:
-
         >>> import distrax
         >>> from surjectors import MaskedCoupling
         >>> from surjectors.nn import make_mlp
         >>> from surjectors.util import make_alternating_binary_mask
         >>>
         >>> def bijector_fn(params):
-        >>>     mu, log_scale = jnp.split(params, 2, -1)
+        >>>     means, log_scales = jnp.split(params, 2, -1)
         >>>     return distrax.ScalarAffine(means, jnp.exp(log_scales)
         >>>
         >>> layer = MaskedAutoregressive(
@@ -40,8 +37,7 @@ class MaskedCoupling(distrax.MaskedCoupling, Bijector):
         event_ndims: Optional[int] = None,
         inner_event_ndims: int = 0,
     ):
-        """
-        Construct a masked coupling layer.
+        """Construct a masked coupling layer.
 
         Args:
             mask: a boolean mask of length n_dim. A value
