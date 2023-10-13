@@ -53,7 +53,7 @@ class TransformedDistribution:
         """
         return getattr(self, method)(**kwargs)
 
-    def log_prob(self, y: Array, x: Array = None) -> Array:
+    def log_prob(self, y: Array, x: Array = None):
         """Calculate the log probability of an event conditional on another.
 
         Args:

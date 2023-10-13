@@ -1,10 +1,9 @@
 from collections import namedtuple
 
-import chex
 import numpy as np
 from jax import lax
 from jax import numpy as jnp
-from jax import random
+from jax import random as jr
 
 __all__ = ["make_alternating_binary_mask", "as_batch_iterator", "unstack"]
 
@@ -27,24 +26,17 @@ class _DataLoader:
 
 
 def make_alternating_binary_mask(n_dim: int, even_idx_as_true: bool = False):
-    """
-    Create a binary masked array
+    """Create a binary masked array.
 
-    Parameters
-    ----------
-    n_dim: int
-        length of the masked array to be created
-    even_idx_as_true: bool
-        a boolean indicating which indices are set to zero.
-        If even_idx_as_true=True sets all even indices [0, 2, 4, ...]
-        to True
+    Args:
+        n_dim: length of the masked array to be created
+        even_idx_as_true: a boolean indicating which indices are set to zero.
+            If even_idx_as_true=True sets all even indices [0, 2, 4, ...]
+            to True
 
-    Returns
-    -------
-    jnp.ndarray
+    Returns:
         boolean masked array where every even or uneven index is True
     """
-
     mask = jnp.arange(0, np.prod(n_dim)) % 2
     mask = jnp.reshape(mask, n_dim)
     mask = mask.astype(bool)
@@ -54,28 +46,19 @@ def make_alternating_binary_mask(n_dim: int, even_idx_as_true: bool = False):
 
 
 def as_batch_iterator(
-    rng_key: chex.PRNGKey, data: named_dataset, batch_size, shuffle
+    rng_key: jr.PRNGKey, data: named_dataset, batch_size, shuffle
 ):
-    """
-    Create a batch iterator for a data set
+    """Create a batch iterator for a data set.
 
-    Parameters
-    ----------
-    rng_key: chex.PRNGKey
-        a JAX/Chex random key
-    data: named_dataset
-        a data set for which an iterator is created
-    batch_size: int
-        size of each batch of data that is returned by the iterator
-    shuffle: bool
-        if true shuffles the data before creating batches
+    Args:
+        rng_key: a JAX random key
+        data: a data set for which an iterator is created
+        batch_size: size of each batch of data that is returned by the iterator
+        shuffle: if true shuffles the data before creating batches
 
-    Returns
-    -------
-    _DataLoader
+    Returns:
         a data loader object
     """
-
     n = data.y.shape[0]
     if n < batch_size:
         num_batches = 1
@@ -87,7 +70,7 @@ def as_batch_iterator(
 
     idxs = jnp.arange(n)
     if shuffle:
-        idxs = random.permutation(rng_key, idxs)
+        idxs = jr.permutation(rng_key, idxs)
 
     def get_batch(idx, idxs=idxs):
         start_idx = idx * batch_size
@@ -103,21 +86,17 @@ def as_batch_iterator(
 
 
 def unstack(x, axis=0):
-    """
-    Unstack a tensor
+    """Unstack a tensor.
 
     Unstack a tensor as tf.unstack does
 
-    Parameters
-    ----------
-    x: jnp.ndarray
-    axis: int
+    Args:
+        x: array to unstack
+        axis: the axis as integer index
 
-    Returns
-    -------
-    jnp.ndarray
+    Returns:
+        unstacked array
     """
-
     return [
         lax.index_in_dim(x, i, axis, keepdims=False)
         for i in range(x.shape[axis])

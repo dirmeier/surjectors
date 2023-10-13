@@ -3,7 +3,7 @@
 
 .. currentmodule:: surjectors.util
 
-.. automodule:: surjectors.util
+``surjectors.util`` contains general utility functions.
 
 .. autosummary::
     as_batch_iterator
