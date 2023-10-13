@@ -83,11 +83,11 @@ Surjectors is licensed under the Apache 2.0 License.
     📰 News <news>
 
 ..  toctree::
-    :caption: 🎓 Example code
+    :caption: 🎓 Examples
     :maxdepth: 1
     :hidden:
 
-    examples
+    Introduction <notebooks/introduction>
 
 ..  toctree::
     :caption: 🧱 API
