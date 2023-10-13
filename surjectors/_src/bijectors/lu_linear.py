@@ -9,11 +9,24 @@ from surjectors._src.surjectors.surjector import Surjector
 # pylint: disable=arguments-differ
 class LULinear(Surjector):
     """
-    Surjection layer based on LU composition
+    An inference funnel based on the LU composition.
+
+    Examples:
+
+        >>> from surjectors import LULinear
+        >>> layer = LULinear(10)
     """
 
-    def __init__(self, n_keep, with_bias=False, dtype=jnp.float32):
-        super().__init__(n_keep, None, None, "bijection", dtype)
+    def __init__(self, n_keep, with_bias=False):
+        """
+        Constructs an LULinear layer.
+
+        Args:
+            n_keep: number of dimensions to keep
+            with_bias: use a bias term or not
+        """
+
+        super().__init__(n_keep, None, None, "bijection")
         if with_bias:
             raise NotImplementedError()
 

@@ -1,20 +1,45 @@
+from typing import Callable
+
 import haiku as hk
 from chex import Array
 from jax import numpy as jnp
 
-from surjectors._src.surjectors.funnel import Funnel
+from surjectors._src.surjectors.surjector import Surjector
 
 
-class Slice(Funnel):
+class Slice(Surjector):
     """
-    Slice funnel
-    """
+    A slice funnel.
 
-    def __init__(self, n_keep, decoder):
-        super().__init__(n_keep, decoder, None, None, "inference_surjector")
+    Used to slice things. Easy.
+
+    Examples:
+
+        >>> from surjectors import Slice
+        >>>
+        >>> def decoder_fn(n_dim):
+        >>>     def _fn(z):
+        >>>         params = make_mlp([4, 4, n_dim * 2])(z)
+        >>>         mu, log_scale = jnp.split(params, 2, -1)
+        >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+        >>>     return _fn
+        >>>
+        >>> layer = Slice(10, decoder_fn(10))"""
+
+    def __init__(self, n_keep: int, decoder: Callable):
+        """
+        Constructs a slice layer.
+
+        Args:
+            n_keep: number if dimensions to keep
+            decoder: callable
+        """
+
+        self.n_keep = n_keep
+        self.decoder = decoder
 
     def split_input(self, array):
-        """Split an array"""
+        """Split an array into pieces."""
         spl = jnp.split(array, [self.n_keep], axis=-1)
         return spl
 

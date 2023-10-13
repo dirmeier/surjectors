@@ -17,34 +17,25 @@ Surjectors makes use of
 Example usage
 -------------
 
-You can, for instance, construct a simple neural process like this:
+You can, for instance, construct a simple normalizing flow like this:
 
-.. code-block:: python
+    >>> import distrax
+    >>> from jax import random as jr, numpy as jnp
+    >>> from surjectors import Slice, LULinear, Chain
+    >>> from surjectors import TransformedDistribution
+    >>>
+    >>> def decoder_fn(n_dim):
+    >>>     def _fn(z):
+    >>>         params = make_mlp([4, 4, n_dim * 2])(z)
+    >>>         mu, log_scale = jnp.split(params, 2, -1)
+    >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+    >>>     return _fn
+    >>>
+    >>> base_distribution = distrax.Normal(jno.zeros(5), jnp.ones(1))
+    >>> flow = Chain([Slice(10, decoder_fn(10)), LULinear(5)])
+    >>> pushforward = TransformedDistribution(base_distribution, flow)
 
-    from jax import random as jr
-
-    from ramsey import NP, MLP
-    from ramsey.data import sample_from_sine_function
-
-    def get_neural_process():
-        dim = 128
-        np = NP(
-            decoder=MLP([dim] * 3 + [2]),
-            latent_encoder=(
-                MLP([dim] * 3), MLP([dim, dim * 2])
-            )
-        )
-        return np
-
-    key = jr.PRNGKey(23)
-    data = sample_from_sine_function(key)
-
-    neural_process = get_neural_process()
-    params = neural_process.init(key, x_context=data.x, y_context=data.y, x_target=data.x)
-
-The neural process takes a decoder and a set of two latent encoders as arguments. All of these are typically MLPs, but
-Ramsey is flexible enough that you can change them, for instance, to CNNs or RNNs. Once the model is defined, you can initialize
-its parameters just like in Flax.
+The flow is constructed using three objects: a base distribution, a transformation, and a transformed distribution.
 
 Installation
 ------------

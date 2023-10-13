@@ -37,12 +37,10 @@ def make_model(dim, model="coupling"):
                 layer = MaskedCoupling(
                     mask=mask,
                     bijector=_bijector_fn,
-                    conditioner=hk.Sequential(
-                        [
-                            make_mlp([8, 8, dim * 2]),
-                            hk.Reshape((dim, dim)),
-                        ]
-                    ),
+                    conditioner=hk.Sequential([
+                        make_mlp([8, 8, dim * 2]),
+                        hk.Reshape((dim, dim)),
+                    ]),
                 )
                 layers.append(layer)
             else:

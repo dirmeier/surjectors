@@ -12,15 +12,15 @@ from matplotlib import pyplot as plt
 from surjectors import (
     AffineMaskedCouplingInferenceFunnel,
     Chain,
-    MaskedAutoregressive,
+    MaskedCoupling,
     TransformedDistribution,
 )
-from surjectors.conditioners import MADE, mlp_conditioner
-from surjectors.util import as_batch_iterator, unstack
+from surjectors.nn import make_mlp
+from surjectors.util import as_batch_iterator, make_alternating_binary_mask
 
 
 def _decoder_fn(n_dim):
-    decoder_net = mlp_conditioner([4, 4, n_dim * 2])
+    decoder_net = make_mlp([4, 4, n_dim * 2])
 
     def _fn(z):
         params = decoder_net(z)
@@ -30,9 +30,9 @@ def _decoder_fn(n_dim):
     return _fn
 
 
-def _made_bijector_fn(params):
-    means, log_scales = unstack(params, -1)
-    return distrax.Inverse(distrax.ScalarAffine(means, jnp.exp(log_scales)))
+def bijector_fn(params):
+    shift, log_scale = jnp.split(params, 2, axis=-1)
+    return distrax.ScalarAffine(shift, jnp.exp(log_scale))
 
 
 def make_model(n_dimensions):
@@ -44,13 +44,15 @@ def make_model(n_dimensions):
                 layer = AffineMaskedCouplingInferenceFunnel(
                     n_keep=int(n_dim / 2),
                     decoder=_decoder_fn(int(n_dim / 2)),
-                    conditioner=mlp_conditioner([8, 8, n_dim * 2]),
+                    conditioner=make_mlp([8, 8, n_dim * 2]),
                 )
                 n_dim = int(n_dim / 2)
             else:
-                layer = MaskedAutoregressive(
-                    conditioner=MADE(n_dim, [8, 8], 2),
-                    bijector_fn=_made_bijector_fn,
+                mask = make_alternating_binary_mask(n_dim, i % 2 == 0)
+                layer = MaskedCoupling(
+                    mask=mask,
+                    bijector=bijector_fn,
+                    conditioner=make_mlp([8, 8, n_dim * 2]),
                 )
             layers.append(layer)
         chain = Chain(layers)

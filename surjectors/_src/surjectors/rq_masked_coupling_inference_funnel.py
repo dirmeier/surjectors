@@ -11,10 +11,42 @@ class RationalQuadraticSplineMaskedCouplingInferenceFunnel(
     MaskedCouplingInferenceFunnel
 ):
     """
-    Inference funnel layer using masked spline coupling
+    A masked coupling inference funnel that uses a rational quatratic spline
+    as a transformation.
+
+    Examples:
+
+        >>> import distrax
+        >>> from jax import numpy as jnp
+        >>> from surjectors import RationalQuadraticSplineMaskedCouplingInferenceFunnel
+        >>> from surjectors.nn import make_mlp
+        >>>
+        >>> def decoder_fn(n_dim):
+        >>>     def _fn(z):
+        >>>         params = make_mlp([4, 4, n_dim * 2])(z)
+        >>>         mu, log_scale = jnp.split(params, 2, -1)
+        >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+        >>>     return _fn
+        >>>
+        >>> layer = RationalQuadraticSplineMaskedCouplingInferenceFunnel(
+        >>>     n_keep=10,
+        >>>     decoder=decoder_fn(10),
+        >>>     conditioner=make_mlp([4, 4, 10 * 2])(z),
+        >>> )
     """
 
     def __init__(self, n_keep, decoder, conditioner, range_min, range_max):
+        """
+        Constructs a RationalQuadraticSplineMaskedCouplingInferenceFunnel layer.
+
+        Args:
+            n_keep: number of dimensions to keep
+            decoder: a callable that returns a conditional probabiltiy
+                distribution when called
+            conditioner: a conditioning neural network
+            range_min: minimum range of the spline
+            range_max: maximum range of the spline
+        """
         self.range_min = range_min
         self.range_max = range_max
 

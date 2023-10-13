@@ -4,18 +4,18 @@ from chex import Array
 from jax import numpy as jnp
 
 from surjectors._src.bijectors.masked_coupling import MaskedCoupling
-from surjectors._src.surjectors.funnel import Funnel
+from surjectors._src.surjectors.surjector import Surjector
 
 
-class AffineMaskedCouplingGenerativeFunnel(Funnel):
+class AffineMaskedCouplingGenerativeFunnel(Surjector):
     """
-    Generative funnel layer using masked affine coupling
+    A Generative funnel layer using masked affine coupling.
     """
 
     def __init__(self, n_keep, encoder, conditioner):
-        super().__init__(
-            n_keep, None, conditioner, encoder, "generative_surjector"
-        )
+        self.n_keep = n_keep
+        self.encoder = encoder
+        self.conditioner = conditioner
 
     def _mask(self, array):
         mask = jnp.arange(array.shape[-1]) >= self.n_keep
@@ -27,7 +27,7 @@ class AffineMaskedCouplingGenerativeFunnel(Funnel):
             shift, log_scale = jnp.split(params, 2, axis=-1)
             return distrax.ScalarAffine(shift, jnp.exp(log_scale))
 
-        return MaskedCoupling(mask, self._conditioner, _bijector_fn)
+        return MaskedCoupling(mask, self.conditioner, _bijector_fn)
 
     def inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
         y_condition = y

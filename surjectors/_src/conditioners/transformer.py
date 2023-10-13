@@ -67,18 +67,24 @@ class _AutoregressiveTransformerEncoder(hk.Module):
 # pylint: disable=too-many-arguments
 def make_transformer(
     output_size,
-    num_heads=2,
-    num_layers=2,
+    num_heads=4,
+    num_layers=4,
     key_size=32,
     dropout_rate=0.1,
     widening_factor=4,
 ):
     """
-    Create a conditioner network based on a transformer
+    Create a conditioner network based on a transformer.
 
-    Returns
-    -------
-    hk.Module
+    Args:
+        output_size: output size of the last layer
+        num_heads: number of heads of the attention
+        num_layers: number of layers
+        key_size: size of the key
+        dropout_rate: rate of dropout
+        widening_factor: factor by which MLP after attention is widened
+
+    Returns:
         a transformable haiku neural network module
     """
 

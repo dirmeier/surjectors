@@ -14,7 +14,28 @@ class RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel(
     AffineMaskedAutoregressiveInferenceFunnel
 ):
     """
-    Inference funnel layer using masked rational quadratic autoregression
+    A masked autoregressive inference funnel that uses a rational quatratic
+    spline as a transformation.
+
+    Examples:
+
+        >>> import distrax
+        >>> from jax import numpy as jnp
+        >>> from surjectors import RationalQuadraticSplineMaskedCouplingInferenceFunnel
+        >>> from surjectors.nn import make_mlp
+        >>>
+        >>> def decoder_fn(n_dim):
+        >>>     def _fn(z):
+        >>>         params = make_mlp([4, 4, n_dim * 2])(z)
+        >>>         mu, log_scale = jnp.split(params, 2, -1)
+        >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+        >>>     return _fn
+        >>>
+        >>> layer = RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel(
+        >>>     n_keep=10,
+        >>>     decoder=decoder_fn(10),
+        >>>     conditioner=MADE(10, [8, 8], 2),
+        >>> )
     """
 
     def __init__(self, n_keep, decoder, conditioner, range_min, range_max):
