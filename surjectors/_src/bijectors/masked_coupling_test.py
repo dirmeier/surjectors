@@ -10,7 +10,7 @@ from jax import numpy as jnp
 from jax import random
 
 import surjectors
-from surjectors._src.conditioners.mlp import make_mlp
+from surjectors.nn import make_mlp
 from surjectors.util import make_alternating_binary_mask
 
 
@@ -36,7 +36,6 @@ def simple_dataset(rng_key, batch_size, n_dimension, n_latent):
         noise = make_noise.sample(
             seed=noise_sample_key, sample_shape=(batch_size, n_dimension)
         )
-
         y = (loadings @ z.T).T + noise
         return {"y": y, "x": noise}
 
@@ -51,7 +50,6 @@ def slcp(rng_key, batch_size):
         theta = prior.sample(seed=noise_sample_key, sample_shape=(batch_size,))
         likelihood = distrax.MultivariateNormalDiag(theta, jnp.ones_like(theta))
         y = likelihood.sample(seed=y_sample_key)
-
         return {"y": y, "x": theta}
 
     return _fn

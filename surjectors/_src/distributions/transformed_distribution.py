@@ -1,23 +1,18 @@
-from typing import Tuple
-
 import chex
 import distrax
 import haiku as hk
 from distrax import Distribution
 from jax import Array
 
-from surjectors._src._transform import Transform
+from surjectors._src.surjectors.surjector import Surjector
 
 
 class TransformedDistribution:
-    """
-    Distribution of a random variable transformed by a surjective or
-    bijective function.
+    """Distribution of a random variable transformed by a function.
 
     Can be used to define a pushforward measure.
 
     Examples:
-
         >>> import distrax
         >>> from jax import numpy as jnp
         >>> from surjectors import Slice, Chain, TransformedDistribution
@@ -32,62 +27,56 @@ class TransformedDistribution:
         >>> )
     """
 
-    def __init__(self, base_distribution: Distribution, transform: Transform):
-        """
-        Constructs a TransformedDistribution.
+    def __init__(self, base_distribution: Distribution, transform: Surjector):
+        """Constructs a TransformedDistribution.
 
         Args:
             base_distribution: a distribution object
             transform: some transformation
         """
-
         self.base_distribution = base_distribution
         self.transform = transform
 
     def __call__(self, method, **kwargs):
+        """Call the TransformedDistribution object.
+
+        Depending on "method", computes log-probability of an event or samples
+        from the distribution.
+
+        Args:
+            method: either "sample" or "log_prob"
+            **kwargs: several keyword arguments that are dispatched to
+                whatever method is called.
+
+        Returns:
+            returns whatever 'method' returns
+        """
         return getattr(self, method)(**kwargs)
 
     def log_prob(self, y: Array, x: Array = None) -> Array:
-        """
-        Calculate the log probability of an event conditional on another event
+        """Calculate the log probability of an event conditional on another.
 
-        Parameters
-        ----------
-        y: Array
-            event for which the log probability is computed
-        x: Optional[Array]
-            optional event that is used to condition
+        Args:
+            y: event for which the log probability is computed
+            x: optional event that is used to condition
 
-        Returns
-        -------
-        Array
+        Returns:
             array of floats of log probabilities
         """
-
         _, lp = self.inverse_and_log_prob(y, x)
         return lp
 
-    def inverse_and_log_prob(
-        self, y: Array, x: Array = None
-    ) -> Tuple[Array, Array]:
-        """
-        Compute the inverse transformation and the log probability of an event
-        conditional on another event
+    def inverse_and_log_prob(self, y: Array, x: Array = None):
+        """Compute the inverse transformation and its log probability.
 
-        Parameters
-        ----------
-        y: Array
-            event for which the inverse and log probability is computed
-        x: Optional[Array]
-            optional event that is used to condition
+        Args:
+            y: event for which the inverse and log probability is computed
+            x: optional event that is used to condition
 
-        Returns
-        -------
-        Tuple[Array, Array]
+        Returns:
             tuple of two arrays of floats. The first one is the inverse
             transformation, the second one is the log probability
         """
-
         if x is not None:
             chex.assert_equal_rank([y, x])
             chex.assert_axis_dimension(y, 0, x.shape[0])
@@ -101,45 +90,31 @@ class TransformedDistribution:
         return z, lp
 
     def sample(self, sample_shape=(), x: Array = None):
-        """
-        Sample an event
+        """Sample an event.
 
-        Parameters
-        ----------
-        sample_shape: Tuple[int]
-            the size of the sample to be drawn
-        x: Optional[Array]
-            optional event that is used to condition the samples. If x is given
-            sample_shape is ignored
+        Args:
+            sample_shape: the size of the sample to be drawn
+            x: optional event that is used to condition the samples.
+                If x is given sample_shape is ignored
 
-        Returns
-        -------
-        Array
+        Returns:
             a sample from the transformed distribution
         """
-
         y, _ = self.sample_and_log_prob(sample_shape, x)
         return y
 
     def sample_and_log_prob(self, sample_shape=(), x: Array = None):
-        """
-        Sample an event and compute its log probability
+        """Sample an event and compute its log probability.
 
-        Parameters
-        ----------
-        sample_shape: Tuple[int]
-            the size of the sample to be drawn
-        x: Optional[Array]
-            optional event that is used to condition the samples. If x is given
-            sample_shape is ignored
+        Args:
+            sample_shape: the size of the sample to be drawn
+            x: optional event that is used to condition the samples.
+                If x is given sample_shape is ignored
 
-        Returns
-        -------
-        Tuple[Array, Array]
+        Returns:
             tuple of two arrays of floats. The first one is the drawn sample
             transformation, the second one is its log probability
         """
-
         if x is not None and len(sample_shape) == 0:
             sample_shape = (x.shape[0],)
         if x is not None:

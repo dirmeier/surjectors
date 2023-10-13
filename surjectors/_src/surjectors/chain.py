@@ -36,7 +36,7 @@ class Chain(Surjector):
 
     @staticmethod
     def _inverse_and_log_contribution_dispatch(transform, y, x):
-        if isinstance(transform, transform):
+        if isinstance(transform, Surjector):
             if hasattr(transform, "inverse_and_likelihood_contribution"):
                 fn = getattr(transform, "inverse_and_likelihood_contribution")
             else:

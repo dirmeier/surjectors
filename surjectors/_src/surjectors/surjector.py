@@ -24,8 +24,7 @@ class Surjector(Transform, ABC):
             tuple of two arrays of floats. The first one is the inverse
             transformation, the second one its likelihood contribution
         """
-
-        return self._inverse_and_likelihood_contribution(y, **kwargs)
+        return self._inverse_and_likelihood_contribution(y, x=x, **kwargs)
 
     @abstractmethod
     def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
@@ -46,8 +45,7 @@ class Surjector(Transform, ABC):
             tuple of two arrays of floats. The first one is the forward
             transformation, the second one its likelihood contribution
         """
-
-        return self._forward_and_likelihood_contribution(z, **kwargs)
+        return self._forward_and_likelihood_contribution(z, x=x, **kwargs)
 
     @abstractmethod
     def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
@@ -64,7 +62,6 @@ class Surjector(Transform, ABC):
         Returns:
             result of the forward transformation
         """
-
         y, _ = self.forward_and_likelihood_contribution(z, x=x, **kwargs)
         return y
 
@@ -79,6 +76,5 @@ class Surjector(Transform, ABC):
         Returns:
             result of the inverse transformation
         """
-
         z, _ = self.inverse_and_likelihood_contribution(y, x=x, **kwargs)
         return z

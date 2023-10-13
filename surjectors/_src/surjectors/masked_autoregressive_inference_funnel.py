@@ -27,7 +27,9 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
         >>>     def _fn(z):
         >>>         params = make_mlp([4, 4, n_dim * 2])(z)
         >>>         mu, log_scale = jnp.split(params, 2, -1)
-        >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+        >>>         return distrax.Independent(
+        >>>             distrax.Normal(mu, jnp.exp(log_scale))
+        >>>         )
         >>>     return _fn
         >>>
         >>> def bijector_fn(params: Array):
@@ -49,8 +51,7 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
         conditioner: MADE,
         bijector_fn: Callable,
     ):
-        """
-        Constructs a MaskedAutoregressiveInferenceFunnel layer.
+        """Constructs a MaskedAutoregressiveInferenceFunnel layer.
 
         Args:
             n_keep: number of dimensions to keep
@@ -59,7 +60,6 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
             conditioner: a MADE neural network
             bijector_fn: an inner bijector function to be used
         """
-
         self.n_keep = n_keep
         self.decoder = decoder
         self.conditioner = conditioner

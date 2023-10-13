@@ -15,14 +15,17 @@ class RationalQuadraticSplineMaskedCouplingInferenceFunnel(
     Examples:
         >>> import distrax
         >>> from jax import numpy as jnp
-        >>> from surjectors import RationalQuadraticSplineMaskedCouplingInferenceFunnel
+        >>> from surjectors import \
+        >>>     RationalQuadraticSplineMaskedCouplingInferenceFunnel
         >>> from surjectors.nn import make_mlp
         >>>
         >>> def decoder_fn(n_dim):
         >>>     def _fn(z):
         >>>         params = make_mlp([4, 4, n_dim * 2])(z)
         >>>         mu, log_scale = jnp.split(params, 2, -1)
-        >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+        >>>         return distrax.Independent(
+        >>>             distrax.Normal(mu, jnp.exp(log_scale))
+        >>>         )
         >>>     return _fn
         >>>
         >>> layer = RationalQuadraticSplineMaskedCouplingInferenceFunnel(
@@ -33,7 +36,7 @@ class RationalQuadraticSplineMaskedCouplingInferenceFunnel(
     """
 
     def __init__(self, n_keep, decoder, conditioner, range_min, range_max):
-        """Construct a RationalQuadraticSplineMaskedCouplingInferenceFunnel layer.
+        """Construct a RationalQuadraticSplineMaskedCouplingInferenceFunnel.
 
         Args:
             n_keep: number of dimensions to keep

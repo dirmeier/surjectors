@@ -8,10 +8,8 @@ from jax import numpy as jnp
 
 
 # pylint: disable=too-many-arguments,too-few-public-methods
-class MaskedLinear(hk.Linear):
-    """
-    Linear layer that masks some weights out.
-    """
+class MaskedLinear(hk.Module):
+    """Linear layer that masks some weights."""
 
     def __init__(
         self,
@@ -19,15 +17,27 @@ class MaskedLinear(hk.Linear):
         with_bias: bool = True,
         w_init: Optional[hk.initializers.Initializer] = None,
         b_init: Optional[hk.initializers.Initializer] = None,
-        name: Optional[str] = None,
     ):
+        """Construct a MaskedLinear layer.
 
-        super().__init__(mask.shape[-1], with_bias, w_init, b_init, name)
+        Args:
+            mask: boolean mask
+            with_bias: boolean
+            w_init: haiku initializer
+            b_init: haiku initializer
+        """
+        super().__init__()
+        self.input_size = None
+        self.output_size = mask.shape[-1]
+        self.with_bias = with_bias
+        self.w_init = w_init
+        self.b_init = b_init or jnp.zeros
         self.mask = mask
 
     def __call__(
         self, inputs, *, precision: Optional[lax.Precision] = None
     ) -> jnp.ndarray:
+        """Apply the layer."""
         if not inputs.shape:
             raise ValueError("Input must not be scalar.")
         dtype = inputs.dtype

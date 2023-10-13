@@ -8,11 +8,16 @@ from surjectors._src.surjectors.surjector import Surjector
 
 
 class AffineMaskedCouplingGenerativeFunnel(Surjector):
-    """
-    A Generative funnel layer using masked affine coupling.
-    """
+    """A Generative funnel layer using masked affine coupling."""
 
     def __init__(self, n_keep, encoder, conditioner):
+        """Construct a AffineMaskedCouplingGenerativeFunnel layer.
+
+        Args:
+            n_keep: number of dimensions to keep
+            encoder: callable
+            conditioner: callable
+        """
         self.n_keep = n_keep
         self.encoder = encoder
         self.conditioner = conditioner
