@@ -14,26 +14,27 @@ Surjectors makes use of
 - Optax for gradient-based optimization,
 - JAX for autodiff and XLA computation.
 
-Example usage
--------------
+Example
+-------
 
 You can, for instance, construct a simple normalizing flow like this:
 
     >>> import distrax
-    >>> from jax import random as jr, numpy as jnp
+    >>> from jax import numpy as jnp
     >>> from surjectors import Slice, LULinear, Chain
     >>> from surjectors import TransformedDistribution
+    >>> from surjectors.nn import make_mlp
     >>>
     >>> def decoder_fn(n_dim):
     >>>     def _fn(z):
-    >>>         params = make_mlp([4, 4, n_dim * 2])(z)
-    >>>         mu, log_scale = jnp.split(params, 2, -1)
-    >>>         return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+    >>>         params = make_mlp([32, 32, n_dim * 2])(z)
+    >>>         means, log_scales = jnp.split(params, 2, -1)
+    >>>         return distrax.Independent(distrax.Normal(means, jnp.exp(log_scales)))
     >>>     return _fn
     >>>
-    >>> base_distribution = distrax.Normal(jno.zeros(5), jnp.ones(1))
-    >>> flow = Chain([Slice(10, decoder_fn(10)), LULinear(5)])
-    >>> pushforward = TransformedDistribution(base_distribution, flow)
+    >>> base_distribution = distrax.Normal(jnp.zeros(5), jnp.ones(1))
+    >>> transform = Chain([Slice(10, decoder_fn(10)), LULinear(5)])
+    >>> pushforward = TransformedDistribution(base_distribution, transform)
 
 The flow is constructed using three objects: a base distribution, a transformation, and a transformed distribution.
 
@@ -64,7 +65,7 @@ Contributions in the form of pull requests are more than welcome. A good way to 
 
 In order to contribute:
 
-1) Clone Surjectors and install :code:`hatch` via :code:`pip install hatch`,
+1) Clone :code:`Surjectors` and install :code:`hatch` via :code:`pip install hatch`,
 2) create a new branch locally :code:`git checkout -b feature/my-new-feature` or :code:`git checkout -b issue/fixes-bug`,
 3) implement your contribution and ideally a test case,
 4) test it by calling :code:`hatch run test` on the (Unix) command line,
