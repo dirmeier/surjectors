@@ -1,16 +1,15 @@
 from typing import Callable
 
 import haiku as hk
-from chex import Array
 from jax import numpy as jnp
 
 from surjectors._src.bijectors.masked_autoregressive import MaskedAutoregressive
+from surjectors._src.conditioners.nn.made import MADE
 from surjectors._src.surjectors.surjector import Surjector
 
 
 class MaskedAutoregressiveInferenceFunnel(Surjector):
-    """
-    A masked autoregressive funnel layer.
+    """A masked autoregressive funnel layer.
 
     The MaskedAutoregressiveInferenceFunnel is an autoregressive funnel,
     i.e., dimensionality reducing transformation, that uses a masking mechanism
@@ -19,7 +18,6 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
     RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel.
 
     Examples:
-
         >>> import distrax
         >>> from surjectors import MaskedAutoregressiveInferenceFunnel
         >>> from surjectors.nn import MADE, make_mlp
@@ -44,7 +42,13 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
         >>> )
     """
 
-    def __init__(self, n_keep: int, decoder: Callable, conditioner: Callable, bijector_fn: Callable):
+    def __init__(
+        self,
+        n_keep: int,
+        decoder: Callable,
+        conditioner: MADE,
+        bijector_fn: Callable,
+    ):
         """
         Constructs a MaskedAutoregressiveInferenceFunnel layer.
 
@@ -62,9 +66,9 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
         self.bijector_fn = bijector_fn
 
     def _inner_bijector(self):
-        return MaskedAutoregressive(self._conditioner, self.bijector_fn)
+        return MaskedAutoregressive(self.conditioner, self.bijector_fn)
 
-    def inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
+    def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
         y_plus, y_minus = y[..., : self.n_keep], y[..., self.n_keep :]
 
         y_cond = y_minus
@@ -79,7 +83,7 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
 
         return z, lc + jac_det
 
-    def forward_and_likelihood_contribution(self, z, x=None, **kwargs):
+    def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
         z_condition = z
         if x is not None:
             z_condition = jnp.concatenate([z, x], axis=-1)
@@ -96,7 +100,3 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
 
         y = jnp.concatenate([y_plus, y_minus])
         return y, lc + jac_det
-
-    def forward(self, z, x=None):
-        y, _ = self.forward_and_likelihood_contribution(z, x)
-        return y

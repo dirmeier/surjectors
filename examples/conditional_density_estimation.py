@@ -8,13 +8,13 @@ from jax import random
 from matplotlib import pyplot as plt
 
 from surjectors import (
+    Chain,
     MaskedAutoregressive,
     MaskedCoupling,
     Permutation,
     TransformedDistribution,
-    Chain
 )
-from surjectors.nn import make_mlp, MADE
+from surjectors.nn import MADE, make_mlp
 from surjectors.util import (
     as_batch_iterator,
     make_alternating_binary_mask,
@@ -37,10 +37,12 @@ def make_model(dim, model="coupling"):
                 layer = MaskedCoupling(
                     mask=mask,
                     bijector=_bijector_fn,
-                    conditioner=hk.Sequential([
-                        make_mlp([8, 8, dim * 2]),
-                        hk.Reshape((dim, dim)),
-                    ]),
+                    conditioner=hk.Sequential(
+                        [
+                            make_mlp([8, 8, dim * 2]),
+                            hk.Reshape((dim, dim)),
+                        ]
+                    ),
                 )
                 layers.append(layer)
             else:

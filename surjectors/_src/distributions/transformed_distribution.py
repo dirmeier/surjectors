@@ -3,8 +3,8 @@ from typing import Tuple
 import chex
 import distrax
 import haiku as hk
-from jax import Array
 from distrax import Distribution
+from jax import Array
 
 from surjectors._src._transform import Transform
 

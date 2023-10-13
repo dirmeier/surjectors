@@ -33,5 +33,3 @@
       ~Chain.dtype
       ~Chain.encoder
       ~Chain.n_keep
-
-

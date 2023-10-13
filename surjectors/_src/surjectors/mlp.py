@@ -6,8 +6,6 @@ import haiku as hk
 from jax import numpy as jnp
 
 from surjectors._src.bijectors.lu_linear import LULinear
-
-
 from surjectors._src.surjectors.surjector import Surjector
 
 

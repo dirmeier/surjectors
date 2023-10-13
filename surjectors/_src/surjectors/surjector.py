@@ -1,5 +1,4 @@
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from jax import Array
 
@@ -10,9 +9,10 @@ from surjectors._src._transform import Transform
 class Surjector(Transform, ABC):
     """A surjective transformation."""
 
-    def inverse_and_likelihood_contribution(self, y: Array, x: Array = None, **kwargs):
-        """
-        Compute the inverse transformation and its likelihood contribution.
+    def inverse_and_likelihood_contribution(
+        self, y: Array, x: Array = None, **kwargs
+    ):
+        """Compute the inverse transformation and its likelihood contribution.
 
         Args:
             y: event for which the inverse and likelihood contribution is
@@ -31,9 +31,10 @@ class Surjector(Transform, ABC):
     def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
         pass
 
-    def forward_and_likelihood_contribution(self, z: Array, x: Array = None, **kwargs):
-        """
-        Compute the forward transformation and its likelihood contribution.
+    def forward_and_likelihood_contribution(
+        self, z: Array, x: Array = None, **kwargs
+    ):
+        """Compute the forward transformation and its likelihood contribution.
 
         Args:
             z: event for which the forward transform and likelihood contribution
@@ -52,9 +53,8 @@ class Surjector(Transform, ABC):
     def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
         pass
 
-    def forward(self, z: Array, x:Array=None, **kwargs):
-        """
-        Computes the forward transformation.
+    def forward(self, z: Array, x: Array = None, **kwargs):
+        """Computes the forward transformation.
 
         Args:
             z: event for which the forward transform is computed
@@ -68,9 +68,8 @@ class Surjector(Transform, ABC):
         y, _ = self.forward_and_likelihood_contribution(z, x=x, **kwargs)
         return y
 
-    def inverse(self, y: Array, x:Array = None, **kwargs):
-        """
-        Compute the inverse transformation
+    def inverse(self, y: Array, x: Array = None, **kwargs):
+        """Compute the inverse transformation.
 
         Args:
             y: event for which the inverse transform is computed

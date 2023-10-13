@@ -18,9 +18,3 @@
       ~TransformedDistribution.log_prob
       ~TransformedDistribution.sample
       ~TransformedDistribution.sample_and_log_prob
-
-
-
-
-
-

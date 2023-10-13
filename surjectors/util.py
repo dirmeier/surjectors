@@ -10,11 +10,10 @@ __all__ = ["make_alternating_binary_mask", "as_batch_iterator", "unstack"]
 
 named_dataset = namedtuple("named_dataset", "y x")
 
+
 # pylint: disable=too-few-public-methods
 class _DataLoader:
-    """
-    Dataloader class
-    """
+    """Dataloader class."""
 
     def __init__(self, num_batches, idxs, get_batch):
         self.num_batches = num_batches
