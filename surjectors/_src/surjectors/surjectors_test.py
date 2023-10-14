@@ -99,7 +99,7 @@ def make_surjector(n_dimension, n_latent, surjector_fn):
                 mask = make_alternating_binary_mask(n_dimension, i % 2 == 0)
                 layer = MaskedCoupling(
                     mask=mask,
-                    bijector=_bijector_fn,
+                    bijector_fn=_bijector_fn,
                     conditioner=make_mlp([32, 32, n_dimension * 2]),
                 )
             else:
