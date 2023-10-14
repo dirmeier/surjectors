@@ -100,9 +100,3 @@ skips = ["B101"]
 [tool.pydocstyle]
 convention= 'google'
 match = '^surjectors/.*/((?!_test).)*\.py'
-
-[tool.nbqa.addopts]
-flake8 = [
-    "--ignore=E501,E203,E302,E402,E731,W503"
-]
-isort = ['--profile=black']

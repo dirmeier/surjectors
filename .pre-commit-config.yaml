@@ -60,15 +60,6 @@ repos:
     args: ["--ignore-missing-imports"]
     files: "(surjectors|examples)"
 
-- repo: https://github.com/nbQA-dev/nbQA
-  rev: 1.6.3
-  hooks:
-  - id: nbqa-black
-  - id: nbqa-pyupgrade
-    args: [--py39-plus]
-  - id: nbqa-isort
-  - id: nbqa-flake8
-
 - repo: https://github.com/jorisroovers/gitlint
   rev: v0.19.1
   hooks:
