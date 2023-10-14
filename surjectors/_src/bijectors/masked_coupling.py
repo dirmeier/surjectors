@@ -12,6 +12,10 @@ from surjectors._src.distributions.transformed_distribution import Array
 class MaskedCoupling(Bijector, distrax.MaskedCoupling):
     """A masked coupling layer.
 
+    References:
+        .. [1] Dinh, Laurent, et al. "Density estimation using RealNVP".
+            International Conference on Learning Representations, 2017.
+
     Examples:
         >>> import distrax
         >>> from surjectors import MaskedCoupling
@@ -22,7 +26,7 @@ class MaskedCoupling(Bijector, distrax.MaskedCoupling):
         >>>     means, log_scales = jnp.split(params, 2, -1)
         >>>     return distrax.ScalarAffine(means, jnp.exp(log_scales)
         >>>
-        >>> layer = MaskedAutoregressive(
+        >>> layer = MaskedCoupling(
         >>>     mask=make_alternating_binary_mask(10, True)
         >>>     bijector=bijector_fn,
         >>>     conditioner=make_mlp([8, 8, 10 * 2]),

@@ -10,6 +10,11 @@ from surjectors._src.surjectors.surjector import Surjector
 class LULinear(Surjector):
     """An inference funnel based on the LU composition.
 
+    References:
+        .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood
+            with dimensionality reduction". Workshop on Bayesian Deep Learning,
+            Advances in Neural Information Processing Systems, 2021.
+
     Examples:
         >>> from surjectors import LULinear
         >>> layer = LULinear(10)

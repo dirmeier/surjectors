@@ -42,7 +42,7 @@ Optax [@deepmind2020jax]. `Surjectors` leverages Distrax [@deepmind2020jax] and 
 
 # Adoption
 
-@dirmeier2023simulation have proposed a novel method for simulation-based inference using `Surjectors` where they make use autoregressive inference surjections for density estimation. @dirmeier2023ood have been using masked coupling surjections for out-of-distribution
-detection and epistemic uncertainty estimation.
+@dirmeier2023simulation have proposed a novel method for simulation-based inference where they make use autoregressive inference surjections for density estimation and where they
+are using `Surjectors` for their implementations.
 
 # References

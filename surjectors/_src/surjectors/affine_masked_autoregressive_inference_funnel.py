@@ -21,6 +21,14 @@ class AffineMaskedAutoregressiveInferenceFunnel(
     transformation from data to latent space using a masking mechanism as in
     MaskedAutoegressive.
 
+    References:
+        .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood
+            with dimensionality reduction". Workshop on Bayesian Deep Learning,
+            Advances in Neural Information Processing Systems, 2021.
+        .. [2] Papamakarios, George, et al. "Masked Autoregressive Flow for
+            Density Estimation". Advances in Neural Information Processing
+            Systems, 2017.
+
     Examples:
         >>> import distrax
         >>> from surjectors import AffineMaskedAutoregressiveInferenceFunnel

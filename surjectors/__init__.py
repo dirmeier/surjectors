@@ -4,7 +4,6 @@ surjectors: Surjection layers for density estimation with normalizing flows
 
 __version__ = "0.3.0"
 
-from surjectors._src.bijectors.lu_linear import LULinear
 from surjectors._src.bijectors.masked_autoregressive import MaskedAutoregressive
 from surjectors._src.bijectors.masked_coupling import MaskedCoupling
 from surjectors._src.bijectors.permutation import Permutation
@@ -22,6 +21,7 @@ from surjectors._src.surjectors.affine_masked_coupling_inference_funnel import (
 )
 from surjectors._src.surjectors.augment import Augment
 from surjectors._src.surjectors.chain import Chain
+from surjectors._src.surjectors.lu_linear import LULinear
 from surjectors._src.surjectors.masked_autoregressive_inference_funnel import (  # noqa: E501
     MaskedAutoregressiveInferenceFunnel,
 )

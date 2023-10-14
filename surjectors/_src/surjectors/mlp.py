@@ -4,12 +4,17 @@ import distrax
 import haiku as hk
 from jax import numpy as jnp
 
-from surjectors._src.bijectors.lu_linear import LULinear
+from surjectors._src.surjectors.lu_linear import LULinear
 from surjectors._src.surjectors.surjector import Surjector
 
 
 class MLPInferenceFunnel(Surjector, hk.Module):
     """A multilayer perceptron inference funnel.
+
+    References:
+        .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood
+            with dimensionality reduction". Workshop on Bayesian Deep Learning,
+            Advances in Neural Information Processing Systems, 2021.
 
     Examples:
         >>> from surjectors import MLPInferenceFunnel
