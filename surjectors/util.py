@@ -1,5 +1,4 @@
 from collections import namedtuple
-from typing import NamedTuple
 
 import numpy as np
 from jax import lax
@@ -47,7 +46,7 @@ def make_alternating_binary_mask(n_dim: int, even_idx_as_true: bool = False):
 
 
 def as_batch_iterator(
-    rng_key: jr.PRNGKey, data: NamedTuple, batch_size: int, shuffle=True
+    rng_key: jr.PRNGKey, data: named_dataset, batch_size: int, shuffle=True
 ):
     """Create a batch iterator for a data set.
 

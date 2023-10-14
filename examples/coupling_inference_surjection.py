@@ -51,7 +51,7 @@ def make_model(n_dimensions):
                 mask = make_alternating_binary_mask(n_dim, i % 2 == 0)
                 layer = MaskedCoupling(
                     mask=mask,
-                    bijector=bijector_fn,
+                    bijector_fn=bijector_fn,
                     conditioner=make_mlp([8, 8, n_dim * 2]),
                 )
             layers.append(layer)

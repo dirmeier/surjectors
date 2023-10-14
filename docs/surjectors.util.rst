@@ -3,6 +3,8 @@
 
 .. currentmodule:: surjectors.util
 
+----
+
 ``surjectors.util`` contains general utility functions.
 
 .. autosummary::
