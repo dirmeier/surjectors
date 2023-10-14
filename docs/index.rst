@@ -3,6 +3,12 @@
 👋 Welcome to Surjectors!
 =========================
 
+.. div:: sd-text-left sd-font-italic
+
+   Surjection layers for density estimation with normalizing flows
+
+----
+
 Surjectors is a light-weight library for density estimation using
 inference and generative surjective normalizing flows, i.e., flows can that reduce or increase dimensionality.
 Surjectors builds on Distrax and Haiku and is fully compatible with both of them.
@@ -89,6 +95,9 @@ Surjectors is licensed under the Apache 2.0 License.
     :hidden:
 
     Introduction <notebooks/introduction>
+    Unconditional and conditional density estimation <notebooks/normalizing_flows>
+    Dimensionality reduction using surjectors <notebooks/dimension_reduction>
+    Self-contained scripts <examples>
 
 ..  toctree::
     :caption: 🧱 API

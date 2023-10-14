@@ -9,7 +9,10 @@ from surjectors._src.surjectors.surjector import Surjector
 class Slice(Surjector):
     """A slice funnel.
 
-    Used to slice things. Easy.
+    References:
+        .. [1] Nielsen, Didrik, et al. "SurVAE Flows: Surjections to Bridge the
+            Gap between VAEs and Flows". Advances in Neural Information
+            Processing Systems, 2020.
 
     Examples:
         >>> import distrax

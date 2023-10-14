@@ -12,6 +12,15 @@ class RationalQuadraticSplineMaskedCouplingInferenceFunnel(
 ):
     """A masked coupling inference funnel that uses a rational quatratic spline.
 
+    References:
+        .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood
+            with dimensionality reduction". Workshop on Bayesian Deep Learning,
+            Advances in Neural Information Processing Systems, 2021.
+        .. [2] Durkan, Conor, et al. "Neural Spline Flows".
+            Advances in Neural Information Processing Systems, 2019.
+        .. [3] Dinh, Laurent, et al. "Density estimation using RealNVP".
+            International Conference on Learning Representations, 2017.
+
     Examples:
         >>> import distrax
         >>> from jax import numpy as jnp

@@ -12,6 +12,10 @@ from surjectors._src.distributions.transformed_distribution import Array
 class MaskedCoupling(Bijector, distrax.MaskedCoupling):
     """A masked coupling layer.
 
+    References:
+        .. [1] Dinh, Laurent, et al. "Density estimation using RealNVP".
+            International Conference on Learning Representations, 2017.
+
     Examples:
         >>> import distrax
         >>> from surjectors import MaskedCoupling
@@ -20,11 +24,11 @@ class MaskedCoupling(Bijector, distrax.MaskedCoupling):
         >>>
         >>> def bijector_fn(params):
         >>>     means, log_scales = jnp.split(params, 2, -1)
-        >>>     return distrax.ScalarAffine(means, jnp.exp(log_scales)
+        >>>     return distrax.ScalarAffine(means, jnp.exp(log_scales))
         >>>
-        >>> layer = MaskedAutoregressive(
-        >>>     mask=make_alternating_binary_mask(10, True)
-        >>>     bijector=bijector_fn,
+        >>> layer = MaskedCoupling(
+        >>>     mask=make_alternating_binary_mask(10, True),
+        >>>     bijector_fn=bijector_fn,
         >>>     conditioner=make_mlp([8, 8, 10 * 2]),
         >>> )
     """
@@ -33,7 +37,7 @@ class MaskedCoupling(Bijector, distrax.MaskedCoupling):
         self,
         mask: Array,
         conditioner: Callable,
-        bijector: Callable,
+        bijector_fn: Callable,
         event_ndims: Optional[int] = None,
         inner_event_ndims: int = 0,
     ):
@@ -44,14 +48,14 @@ class MaskedCoupling(Bijector, distrax.MaskedCoupling):
                 of True indicates that the corresponding input remains unchanged
             conditioner: a function that computes the parameters of the inner
                 bijector
-            bijector: a callable that returns the inner bijector that will be
+            bijector_fn: a callable that returns the inner bijector that will be
                 used to transform the input
             event_ndims: the number of array dimensions the bijector operates on
             inner_event_ndims: the number of array dimensions the inner bijector
                 operates on
         """
         super().__init__(
-            mask, conditioner, bijector, event_ndims, inner_event_ndims
+            mask, conditioner, bijector_fn, event_ndims, inner_event_ndims
         )
 
     def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):

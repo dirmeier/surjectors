@@ -3,6 +3,8 @@
 
 .. currentmodule:: surjectors.nn
 
+----
+
 ``surjectors.nn`` contains utility functions and classes to construct neural
 networks and several network architectures to build normalizing flows such as
 density networks.

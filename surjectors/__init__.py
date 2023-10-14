@@ -38,7 +38,9 @@ from surjectors._src.surjectors.rq_masked_coupling_inference_funnel import (
 from surjectors._src.surjectors.slice import Slice
 
 __all__ = [
-    "LULinear",
+    "Chain",
+    "Permutation",
+    "TransformedDistribution",
     "MaskedAutoregressive",
     "MaskedAutoregressiveInferenceFunnel",
     "AffineMaskedAutoregressiveInferenceFunnel",
@@ -46,12 +48,10 @@ __all__ = [
     "MaskedCoupling",
     "MaskedCouplingInferenceFunnel",
     "AffineMaskedCouplingInferenceFunnel",
-    "AffineMaskedCouplingGenerativeFunnel",
     "RationalQuadraticSplineMaskedCouplingInferenceFunnel",
-    "Permutation",
-    "TransformedDistribution",
-    "Augment",
-    "Chain",
+    # "AffineMaskedCouplingGenerativeFunnel",
+    "LULinear",
     "MLPInferenceFunnel",
     "Slice",
+    # "Augment",
 ]

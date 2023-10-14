@@ -9,6 +9,25 @@ from surjectors._src._transform import Transform
 class Surjector(Transform, ABC):
     """A surjective transformation."""
 
+    def __call__(self, method, **kwargs):
+        """Call the Surjector.
+
+        Depending on "method", computes
+        - inverse,
+        - forward,
+        - inverse_and_likelihood_contribution
+        - forward_and_likelihood_contribution
+
+        Args:
+            method: either of the methods above
+            **kwargs: several keyword arguments that are dispatched to
+                whatever method is called.
+
+        Returns:
+            returns whatever 'method' returns
+        """
+        return getattr(self, method)(**kwargs)
+
     def inverse_and_likelihood_contribution(
         self, y: Array, x: Array = None, **kwargs
     ):

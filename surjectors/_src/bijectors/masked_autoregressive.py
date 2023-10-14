@@ -11,6 +11,11 @@ from surjectors._src.conditioners.nn.made import MADE
 class MaskedAutoregressive(Bijector):
     """A masked autoregressive layer.
 
+    References:
+        .. [1] Papamakarios, George, et al. "Masked Autoregressive Flow for
+            Density Estimation". Advances in Neural Information Processing
+            Systems, 2017.
+
     Examples:
         >>> import distrax
         >>> from surjectors import MaskedAutoregressive

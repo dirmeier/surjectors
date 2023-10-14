@@ -1,9 +1,12 @@
 -e .
 furo
+ipykernel
 ipython
 matplotlib
 nbsphinx
+pandas
 seaborn
+session_info
 sphinx
 sphinx-autobuild
 sphinx-book-theme
@@ -14,3 +17,4 @@ sphinx_design
 sphinx_fontawesome
 sphinx_gallery
 sphinxcontrib-fulltoc
+tqdm

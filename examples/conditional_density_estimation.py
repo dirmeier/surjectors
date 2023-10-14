@@ -36,7 +36,7 @@ def make_model(dim, model="coupling"):
                 mask = make_alternating_binary_mask(2, i % 2 == 0)
                 layer = MaskedCoupling(
                     mask=mask,
-                    bijector=_bijector_fn,
+                    bijector_fn=_bijector_fn,
                     conditioner=hk.Sequential(
                         [
                             make_mlp([8, 8, dim * 2]),

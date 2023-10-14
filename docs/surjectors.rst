@@ -3,6 +3,8 @@
 
 .. currentmodule:: surjectors
 
+----
+
 Normalizing flows have from a computational perspective three components:
 
 - A base distribution for which we use the probability distributions from `Distrax <https://github.com/google-deepmind/distrax>`_.

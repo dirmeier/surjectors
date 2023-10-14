@@ -1,5 +1,5 @@
 ---
-title: "Surjectors: surjective normalizing flows for density estimation"
+title: 'Surjectors: surjective normalizing flows for density estimation'
 tags:
   - Python
   - JAX
@@ -10,13 +10,11 @@ tags:
 authors:
   - name: Simon Dirmeier^[corresponding author]
     affiliation: "1, 2"
-    affiliation: "2"
 affiliations:
   - name: Swiss Data Science Center, Zurich, Switzerland
     index: 1
   - name: ETH Zurich, Zurich, Switzerland
     index: 2
-  -
 date: 10 October 2023
 bibliography: paper.bib
 ---
@@ -42,7 +40,7 @@ Optax [@deepmind2020jax]. `Surjectors` leverages Distrax [@deepmind2020jax] and 
 
 # Adoption
 
-@dirmeier2023simulation have proposed a novel method for simulation-based inference using `Surjectors` where they make use autoregressive inference surjections for density estimation. @dirmeier2023ood have been using masked coupling surjections for out-of-distribution
-detection and epistemic uncertainty estimation.
+@dirmeier2023simulation have proposed a novel method for simulation-based inference where they make use autoregressive inference surjections for density estimation and where they
+are using `Surjectors` for their implementations.
 
 # References
