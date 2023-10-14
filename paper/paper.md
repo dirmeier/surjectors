@@ -1,5 +1,5 @@
 ---
-title: "Surjectors: surjective normalizing flows for density estimation"
+title: 'Surjectors: surjective normalizing flows for density estimation'
 tags:
   - Python
   - JAX
@@ -10,13 +10,11 @@ tags:
 authors:
   - name: Simon Dirmeier^[corresponding author]
     affiliation: "1, 2"
-    affiliation: "2"
 affiliations:
   - name: Swiss Data Science Center, Zurich, Switzerland
     index: 1
   - name: ETH Zurich, Zurich, Switzerland
     index: 2
-  -
 date: 10 October 2023
 bibliography: paper.bib
 ---
