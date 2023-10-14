@@ -1,5 +1,6 @@
 -e .
 furo
+ipykernel
 ipython
 matplotlib
 nbsphinx
