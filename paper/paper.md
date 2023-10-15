@@ -1,5 +1,5 @@
 ---
-title: 'Surjectors: surjective normalizing flows for density estimation'
+title: 'Surjectors: surjection layers for density estimation with normalizing flows'
 tags:
   - Python
   - JAX
