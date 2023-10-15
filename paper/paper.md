@@ -8,7 +8,7 @@ tags:
   - Machine learning
   - Statistics
 authors:
-  - name: Simon Dirmeier^[corresponding author]
+  - name: Simon Dirmeier
     affiliation: "1, 2"
 affiliations:
   - name: Swiss Data Science Center, Zurich, Switzerland
@@ -42,5 +42,9 @@ Optax [@deepmind2020jax]. `Surjectors` leverages Distrax [@deepmind2020jax] and 
 
 @dirmeier2023simulation have proposed a novel method for simulation-based inference where they make use autoregressive inference surjections for density estimation and where they
 are using `Surjectors` for their implementations.
+
+# Acknowledgments
+
+The work conducted here is independent of SD's role at the Swiss Data Science Center.
 
 # References
