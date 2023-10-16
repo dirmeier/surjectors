@@ -24,11 +24,11 @@ bibliography: paper.bib
 Normalizing flows [NFs, @papamakarios2021normalizing] are tractable neural density estimators which have in the recent past been applied successfully for, e.g.,
 generative modelling [@kingma2018glow,@ping20wave], Bayesian inference [@rezende15flow,@hoffman2019neutra] or simulation-based inference [@papamakarios2019sequential,@dirmeier2023simulation]. `Surjectors` is a Python library in particular
 for *surjective*, i.e., dimensionality-reducing normalizing flows (SNFs, @klein2021funnels). `Surjectors` is based on the libraries JAX, Haiku and Distrax [@jax2018github, @deepmind2020jax] and is fully compatible with them.
-By virtue of being entirely written in JAX [@jax2018github], `Surjectors` naturally supports usage on either CPU, GPU and TPU.
+By virtue of being entirely written in JAX [@jax2018github], `Surjectors` naturally supports usage on either CPU, GPU or TPU.
 
 # Statement of Need
 
-Real-world data are often lying in a high-dimensional ambient space embedded in a lower-dimensional manifold [@fefferman2016testing] which can complicate estimation of probability densities [@dai2020sliced,@klein2021funnels,@nalisnick2018deep].
+Real-world data are often lying in a high-dimensional ambient space embedded in a lower-dimensional manifold [@fefferman2016testing] which can complicate estimation of probability densities (@dai2020sliced, @klein2021funnels,@nalisnick2018deep).
 As a remedy, recently neural density estimators using surjective normalizing flows (SNFs) have been proposed which reduce the dimensionality of the data while still allowing for exact computation of data likelihoods [@klein2021funnels].
 While several computational libraries exist that implement *bijective* normalizing flows, i.e., flows that are dimensionality-preserving, currently none exist that efficiently implement dimensionality-reducing flows.
 
@@ -42,9 +42,5 @@ Optax [@deepmind2020jax]. `Surjectors` leverages Distrax [@deepmind2020jax] and 
 
 @dirmeier2023simulation have proposed a novel method for simulation-based inference where they make use autoregressive inference surjections for density estimation and where they
 are using `Surjectors` for their implementations.
-
-# Acknowledgments
-
-The work conducted here is independent of SD's role at the Swiss Data Science Center.
 
 # References
