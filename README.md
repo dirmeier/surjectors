@@ -25,7 +25,8 @@ You can, for instance, construct a simple normalizing flow like this:
 
 ```python
 import distrax
-from jax import numpy as jnp
+import haiku as hk
+from jax import numpy as jnp, random as jr
 from surjectors import Slice, LULinear, Chain
 from surjectors import TransformedDistribution
 from surjectors.nn import make_mlp
@@ -37,9 +38,19 @@ def decoder_fn(n_dim):
         return distrax.Independent(distrax.Normal(means, jnp.exp(log_scales)))
     return _fn
 
-base_distribution = distrax.Normal(jnp.zeros(5), jnp.ones(5))
-transform = Chain([Slice(10, decoder_fn(10)), LULinear(5)])
-pushforward = TransformedDistribution(base_distribution, transform)
+@hk.without_apply_rng
+@hk.transform
+def flow(x):
+    base_distribution = distrax.Independent(
+        distrax.Normal(jnp.zeros(5), jnp.ones(5)), 1
+    )
+    transform = Chain([Slice(5, decoder_fn(5)), LULinear(5)])
+    pushforward = TransformedDistribution(base_distribution, transform)
+    return pushforward.log_prob(x)
+
+x = jr.normal(jr.PRNGKey(1), (1, 10))
+params = flow.init(jr.PRNGKey(2), x)
+lp = flow.apply(params, x)
 ```
 
 More self-contained examples can be found in [examples](https://github.com/dirmeier/surjectors/tree/main/examples).
