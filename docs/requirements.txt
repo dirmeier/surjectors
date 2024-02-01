@@ -1,5 +1,4 @@
 -e .
-furo
 ipykernel
 ipython
 matplotlib
@@ -9,7 +8,7 @@ seaborn
 session_info
 sphinx
 sphinx-autobuild
-sphinx-book-theme
+sphinx-book-theme>=1.1.0
 sphinx-copybutton
 sphinx-math-dollar
 sphinx_autodoc_typehints

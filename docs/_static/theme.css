@@ -1,12 +1,11 @@
-html[data-theme="dark"], html[data-theme="light"] {
-    /*--pst-color-primary: #204a87;*/
-    /*--pst-color-link: #204a87;*/
-    /*--sd-color-primary: #204a87;*/
+html[data-theme="light"] {
+  --pst-color-primary: #204a87;
+  --pst-color-primary-bg: #ffe9dd;
+  --pst-color-secondary: rgb(243, 199, 238);
 }
 
 h1 > code > span {
     font-family: var(--pst-font-family-monospace);
-    /*color: #204a87;*/
     font-weight: 700;
 }
 

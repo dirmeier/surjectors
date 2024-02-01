@@ -42,7 +42,7 @@ exclude_patterns = [
     "examples/*py"
 ]
 
-html_theme = "furo"
+html_theme = "sphinx_book_theme"
 
 html_theme_options = {
     "repository_url": "https://github.com/dirmeier/surjectors",
