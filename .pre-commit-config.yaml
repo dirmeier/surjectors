@@ -59,12 +59,6 @@ repos:
     args: ["--ignore-missing-imports"]
     files: "(surjectors|examples)"
 
-- repo: https://github.com/jorisroovers/gitlint
-  rev: v0.19.1
-  hooks:
-  - id: gitlint
-  - id: gitlint-ci
-
 - repo: https://github.com/pycqa/pydocstyle
   rev: 6.1.1
   hooks:

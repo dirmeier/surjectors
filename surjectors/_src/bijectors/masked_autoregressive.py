@@ -50,8 +50,8 @@ class MaskedAutoregressive(Bijector):
         """
         if event_ndims is not None and event_ndims < inner_event_ndims:
             raise ValueError(
-                f"`event_ndims={event_ndims}` should be at least as"
-                f" large as `inner_event_ndims={inner_event_ndims}`."
+                f"'event_ndims={event_ndims}' should be at least as"
+                f" large as 'inner_event_ndims={inner_event_ndims}'."
             )
         if not isinstance(conditioner, MADE):
             raise ValueError(
