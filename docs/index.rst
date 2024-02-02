@@ -28,7 +28,6 @@ You can, for instance, construct a simple normalizing flow like this:
     >>> import distrax
     >>> import haiku as hk
     >>> from jax import numpy as jnp, random as jr
-    >>> import distrax
     >>> from surjectors import Slice, LULinear, Chain
     >>> from surjectors import TransformedDistribution
     >>> from surjectors.nn import make_mlp
