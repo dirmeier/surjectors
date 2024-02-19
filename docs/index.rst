@@ -25,32 +25,35 @@ Example
 
 You can, for instance, construct a simple normalizing flow like this:
 
-    >>> import distrax
-    >>> import haiku as hk
-    >>> from jax import numpy as jnp, random as jr
-    >>> from surjectors import TransformedDistribution
-    >>> from surjectors.nn import make_mlp
-    >>>
-    >>> def decoder_fn(n_dim):
-    >>>     def _fn(z):
-    >>>         params = make_mlp([32, 32, n_dim * 2])(z)
-    >>>         means, log_scales = jnp.split(params, 2, -1)
-    >>>         return distrax.Independent(distrax.Normal(means, jnp.exp(log_scales)))
-    >>>     return _fn
-    >>>
-    >>> @hk.without_apply_rng
-    >>> @hk.transform
-    >>> def flow(x):
-    >>>     base_distribution = distrax.Independent(
-    >>>         distrax.Normal(jnp.zeros(5), jnp.ones(5)), 1
-    >>>     )
-    >>>     transform = Chain([Slice(5, decoder_fn(5)), LULinear(5)])
-    >>>     pushforward = TransformedDistribution(base_distribution, transform)
-    >>>     return pushforward.log_prob(x)
-    >>>
-    >>> x = jr.normal(jr.PRNGKey(1), (1, 10))
-    >>> params = flow.init(jr.PRNGKey(2), x)
-    >>> lp = flow.apply(params, x)
+.. code-block:: python
+
+    import distrax
+    import haiku as hk
+    from jax import numpy as jnp, random as jr
+    from surjectors import Slice, LULinear, Chain
+    from surjectors import TransformedDistribution
+    from surjectors.nn import make_mlp
+
+    def decoder_fn(n_dim):
+        def _fn(z):
+            params = make_mlp([32, 32, n_dim * 2])(z)
+            means, log_scales = jnp.split(params, 2, -1)
+            return distrax.Independent(distrax.Normal(means, jnp.exp(log_scales)))
+        return _fn
+
+    @hk.without_apply_rng
+    @hk.transform
+    def flow(x):
+        base_distribution = distrax.Independent(
+            distrax.Normal(jnp.zeros(5), jnp.ones(5)), 1
+        )
+        transform = Chain([Slice(5, decoder_fn(5)), LULinear(5)])
+        pushforward = TransformedDistribution(base_distribution, transform)
+        return pushforward.log_prob(x)
+
+    x = jr.normal(jr.PRNGKey(1), (1, 10))
+    params = flow.init(jr.PRNGKey(2), x)
+    lp = flow.apply(params, x)
 
 The flow is constructed using three objects: a base distribution, a transformation, and a transformed distribution.
 
