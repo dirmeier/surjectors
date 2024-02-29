@@ -18,13 +18,15 @@ class RationalQuadraticSplineMaskedCoupling(MaskedCoupling):
 
     Examples:
         >>> import distrax
-        >>> from surjectors import AffineMaskedCoupling
+        >>> from surjectors import RationalQuadraticSplineMaskedCoupling
         >>> from surjectors.nn import make_mlp
         >>> from surjectors.util import make_alternating_binary_mask
         >>>
-        >>> layer = MaskedCoupling(
+        >>> layer = RationalQuadraticSplineMaskedCoupling(
         >>>     mask=make_alternating_binary_mask(10, True),
         >>>     conditioner=make_mlp([8, 8, 10 * 2]),
+        >>>     range_min=-1.0,
+        >>>     range_max=1.0
         >>> )
     """
 

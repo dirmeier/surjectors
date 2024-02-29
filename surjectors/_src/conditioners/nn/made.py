@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Optional, Union
 
 import haiku as hk
 import jax
@@ -26,7 +26,7 @@ class MADE(hk.Module):
     def __init__(
         self,
         input_size: int,
-        hidden_layer_sizes: Union[List[int], Tuple[int]],
+        hidden_layer_sizes: Union[list[int], tuple[int]],
         n_params: int,
         w_init: Optional[hk.initializers.Initializer] = None,
         b_init: Optional[hk.initializers.Initializer] = None,

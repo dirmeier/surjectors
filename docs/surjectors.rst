@@ -29,6 +29,10 @@ Hence, every normalizing flow can be composed by defining these three components
     >>> flow = Chain([Slice(10, decoder_fn(10)), LULinear(5)])
     >>> pushforward = TransformedDistribution(base_distribution, flow)
 
+Regardless of how the chain of transformations (called :code:`flow` above) is defined,
+each pushforward has access to four methods :code:`sample`, :code:`sample_and_log_prob`:code:`log_prob`, and :code:`inverse_and_log_prob`.
+
+The exact method declarations can be found in the API below.
 
 General
 -------
@@ -41,13 +45,13 @@ TransformedDistribution
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ..  autoclass:: TransformedDistribution
-    :members:
+    :members: log_prob, sample, inverse_and_log_prob, sample_and_log_prob
 
 Chain
 ~~~~~
 
 ..  autoclass:: Chain
-    :members: __init__
+    :members:
 
 Bijective layers
 ----------------
@@ -64,28 +68,28 @@ Autoregressive bijections
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ..  autoclass:: MaskedAutoregressive
-    :members: __init__
+    :members:
 
 ..  autoclass:: AffineMaskedAutoregressive
-    :members: __init__
+    :members:
 
 Coupling bijections
 ~~~~~~~~~~~~~~~~~~~
 
 ..  autoclass:: MaskedCoupling
-    :members: __init__
+    :members:
 
 ..  autoclass:: AffineMaskedCoupling
-    :members: __init__
+    :members:
 
 ..  autoclass:: RationalQuadraticSplineMaskedCoupling
-    :members: __init__
+    :members:
 
 Other bijections
 ~~~~~~~~~~~~~~~~
 
 ..  autoclass:: Permutation
-    :members: __init__
+    :members:
 
 Inference surjection layers
 ---------------------------
@@ -108,34 +112,34 @@ Coupling inference surjections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ..  autoclass:: MaskedCouplingInferenceFunnel
-    :members: __init__
+    :members:
 
 ..  autoclass:: AffineMaskedCouplingInferenceFunnel
-    :members: __init__
+    :members:
 
 ..  autoclass:: RationalQuadraticSplineMaskedCouplingInferenceFunnel
-    :members: __init__
+    :members:
 
 Autoregressive inference surjections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ..  autoclass:: MaskedAutoregressiveInferenceFunnel
-    :members: __init__
+    :members:
 
 ..  autoclass:: AffineMaskedAutoregressiveInferenceFunnel
-    :members: __init__
+    :members:
 
 ..  autoclass:: RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel
-    :members: __init__
+    :members:
 
 Other inference surjections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ..  autoclass:: LULinear
-    :members: __init__
+    :members:
 
 ..  autoclass:: MLPInferenceFunnel
-    :members: __init__
+    :members:
 
 ..  autoclass:: Slice
-    :members: __init__
+    :members:

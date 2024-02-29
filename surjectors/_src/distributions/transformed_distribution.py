@@ -12,6 +12,10 @@ class TransformedDistribution:
 
     Can be used to define a pushforward measure.
 
+    Args:
+        base_distribution: a distribution object
+        transform: some transformation
+
     Examples:
         >>> import distrax
         >>> from jax import numpy as jnp
@@ -28,12 +32,6 @@ class TransformedDistribution:
     """
 
     def __init__(self, base_distribution: Distribution, transform: Surjector):
-        """Constructs a TransformedDistribution.
-
-        Args:
-            base_distribution: a distribution object
-            transform: some transformation
-        """
         self.base_distribution = base_distribution
         self.transform = transform
 

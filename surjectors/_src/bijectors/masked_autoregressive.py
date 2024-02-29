@@ -11,6 +11,14 @@ from surjectors._src.conditioners.nn.made import MADE
 class MaskedAutoregressive(Bijector):
     """A masked autoregressive layer.
 
+    Args:
+        conditioner: a MADE network
+        bijector_fn: a callable that returns the inner bijector that will
+            be used to transform the input
+        event_ndims: the number of array dimensions the bijector operates on
+        inner_event_ndims: tthe number of array dimensions the bijector
+            operates on
+
     References:
         .. [1] Papamakarios, George, et al. "Masked Autoregressive Flow for
             Density Estimation". Advances in Neural Information Processing

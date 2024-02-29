@@ -1,4 +1,4 @@
-# pylint: skip-file
+# type: ignore
 
 import distrax
 import haiku as hk

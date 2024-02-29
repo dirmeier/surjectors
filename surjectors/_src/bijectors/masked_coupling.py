@@ -12,9 +12,16 @@ from surjectors._src.distributions.transformed_distribution import Array
 class MaskedCoupling(Bijector, distrax.MaskedCoupling):
     """A masked coupling layer.
 
-    References:
-        .. [1] Dinh, Laurent, et al. "Density estimation using RealNVP".
-            International Conference on Learning Representations, 2017.
+    Args:
+        mask: a boolean mask of length n_dim. A value
+            of True indicates that the corresponding input remains unchanged
+        conditioner: a function that computes the parameters of the inner
+            bijector
+        bijector_fn: a callable that returns the inner bijector that will be
+            used to transform the input
+        event_ndims: the number of array dimensions the bijector operates on
+        inner_event_ndims: the number of array dimensions the inner bijector
+            operates on
 
     Examples:
         >>> import distrax
@@ -31,6 +38,10 @@ class MaskedCoupling(Bijector, distrax.MaskedCoupling):
         >>>     bijector_fn=bijector_fn,
         >>>     conditioner=make_mlp([8, 8, 10 * 2]),
         >>> )
+
+    References:
+        .. [1] Dinh, Laurent, et al. "Density estimation using RealNVP".
+            International Conference on Learning Representations, 2017.
     """
 
     def __init__(
@@ -41,19 +52,6 @@ class MaskedCoupling(Bijector, distrax.MaskedCoupling):
         event_ndims: Optional[int] = None,
         inner_event_ndims: int = 0,
     ):
-        """Construct a masked coupling layer.
-
-        Args:
-            mask: a boolean mask of length n_dim. A value
-                of True indicates that the corresponding input remains unchanged
-            conditioner: a function that computes the parameters of the inner
-                bijector
-            bijector_fn: a callable that returns the inner bijector that will be
-                used to transform the input
-            event_ndims: the number of array dimensions the bijector operates on
-            inner_event_ndims: the number of array dimensions the inner bijector
-                operates on
-        """
         super().__init__(
             mask, conditioner, bijector_fn, event_ndims, inner_event_ndims
         )

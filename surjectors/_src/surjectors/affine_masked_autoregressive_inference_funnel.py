@@ -21,13 +21,11 @@ class AffineMaskedAutoregressiveInferenceFunnel(
     transformation from data to latent space using a masking mechanism as in
     MaskedAutoegressive.
 
-    References:
-        .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood
-            with dimensionality reduction". Workshop on Bayesian Deep Learning,
-            Advances in Neural Information Processing Systems, 2021.
-        .. [2] Papamakarios, George, et al. "Masked Autoregressive Flow for
-            Density Estimation". Advances in Neural Information Processing
-            Systems, 2017.
+    Args:
+        n_keep: number of dimensions to keep
+        decoder: a callable that returns a conditional probabiltiy
+            distribution when called
+        conditioner: a MADE neural network
 
     Examples:
         >>> import distrax
@@ -49,18 +47,17 @@ class AffineMaskedAutoregressiveInferenceFunnel(
         >>>     decoder=decoder_fn(10),
         >>>     conditioner=MADE(10, [8, 8], 2),
         >>> )
+
+    References:
+        .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood
+           with dimensionality reduction". Workshop on Bayesian Deep Learning,
+           Advances in Neural Information Processing Systems, 2021.
+        .. [2] Papamakarios, George, et al. "Masked Autoregressive Flow for
+           Density Estimation". Advances in Neural Information Processing
+           Systems, 2017.
     """
 
     def __init__(self, n_keep: int, decoder: Callable, conditioner: MADE):
-        """Constructs a AffineMaskedAutoregressiveInferenceFunnel layer.
-
-        Args:
-            n_keep: number of dimensions to keep
-            decoder: a callable that returns a conditional probabiltiy
-                distribution when called
-            conditioner: a MADE neural network
-        """
-
         def bijector_fn(params: Array):
             shift, log_scale = unstack(params, axis=-1)
             return distrax.ScalarAffine(shift, jnp.exp(log_scale))

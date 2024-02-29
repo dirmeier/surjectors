@@ -17,12 +17,12 @@ class MaskedCouplingInferenceFunnel(Surjector):
     comparison to ASffineMaskedCouplingInferenceFunnel and
     RationalQuadraticSplineMaskedCouplingInferenceFunnel.
 
-    References:
-        .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood
-            with dimensionality reduction". Workshop on Bayesian Deep Learning,
-            Advances in Neural Information Processing Systems, 2021.
-        .. [2] Dinh, Laurent, et al. "Density estimation using RealNVP".
-            International Conference on Learning Representations, 2017.
+    Args:
+        n_keep: number of dimensions to keep
+        decoder: a callable that returns a conditional probabiltiy
+            distribution when called
+        conditioner: a conditioning neural network
+        bijector_fn: an inner bijector function to be used
 
     Examples:
         >>> import distrax
@@ -48,6 +48,13 @@ class MaskedCouplingInferenceFunnel(Surjector):
         >>>     conditioner=make_mlp([4, 4, 10 * 2]),
         >>>     bijector_fn=bijector_fn
         >>> )
+
+    References:
+        .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood
+            with dimensionality reduction". Workshop on Bayesian Deep Learning,
+            Advances in Neural Information Processing Systems, 2021.
+        .. [2] Dinh, Laurent, et al. "Density estimation using RealNVP".
+            International Conference on Learning Representations, 2017.
     """
 
     def __init__(
@@ -57,15 +64,6 @@ class MaskedCouplingInferenceFunnel(Surjector):
         conditioner: Callable,
         bijector_fn: Callable,
     ):
-        """Construct a MaskedCouplingInferenceFunnel layer.
-
-        Args:
-            n_keep: number of dimensions to keep
-            decoder: a callable that returns a conditional probabiltiy
-                distribution when called
-            conditioner: a conditioning neural network
-            bijector_fn: an inner bijector function to be used
-        """
         self.n_keep = n_keep
         self.decoder = decoder
         self.conditioner = conditioner
