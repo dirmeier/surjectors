@@ -91,7 +91,7 @@ In order to contribute:
 5) submit a PR 🙂
 
 
-## Citation
+## Citing Surjectors
 
 If you find our work relevant to your research, please consider citing:
 
