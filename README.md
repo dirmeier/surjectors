@@ -1,8 +1,9 @@
 # surjectors
 
-[![status](http://www.repostatus.org/badges/latest/concept.svg)](http://www.repostatus.org/#concept)
+[![active](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![ci](https://github.com/dirmeier/surjectors/actions/workflows/ci.yaml/badge.svg)](https://github.com/dirmeier/surjectors/actions/workflows/ci.yaml)
 [![version](https://img.shields.io/pypi/v/surjectors.svg?colorB=black&style=flat)](https://pypi.org/project/surjectors/)
+[![doi](https://joss.theoj.org/papers/10.21105/joss.06188/status.svg)](https://doi.org/10.21105/joss.06188)
 
 > Surjection layers for density estimation with normalizing flows
 
@@ -88,6 +89,25 @@ In order to contribute:
 3) implement your contribution and ideally a test case,
 4) test it by calling `hatch run test` on the (Unix) command line,
 5) submit a PR 🙂
+
+
+## Citation
+
+If you find our work relevant to your research, please consider citing:
+
+```
+@article{dirmeier2024surjectors,
+    author = {Simon Dirmeier},
+    title = {Surjectors: surjection layers for density estimation with normalizing flows},
+    year = {2024},
+    journal = {Journal of Open Source Software},
+    publisher = {The Open Journal},
+    volume = {9},
+    number = {94},
+    pages = {6188},
+    doi = {10.21105/joss.06188}
+}
+```
 
 ## Author
 
