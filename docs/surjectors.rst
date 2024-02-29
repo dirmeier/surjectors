@@ -54,7 +54,10 @@ Bijective layers
 
 .. autosummary::
     MaskedAutoregressive
+    AffineMaskedAutoregressive
     MaskedCoupling
+    AffineMaskedCoupling
+    RationalQuadraticSplineMaskedCoupling
     Permutation
 
 Autoregressive bijections
@@ -63,10 +66,19 @@ Autoregressive bijections
 ..  autoclass:: MaskedAutoregressive
     :members: __init__
 
+..  autoclass:: AffineMaskedAutoregressive
+    :members: __init__
+
 Coupling bijections
 ~~~~~~~~~~~~~~~~~~~
 
 ..  autoclass:: MaskedCoupling
+    :members: __init__
+
+..  autoclass:: AffineMaskedCoupling
+    :members: __init__
+
+..  autoclass:: RationalQuadraticSplineMaskedCoupling
     :members: __init__
 
 Other bijections
@@ -97,7 +109,6 @@ Coupling inference surjections
 
 ..  autoclass:: MaskedCouplingInferenceFunnel
     :members: __init__
-
 
 ..  autoclass:: AffineMaskedCouplingInferenceFunnel
     :members: __init__

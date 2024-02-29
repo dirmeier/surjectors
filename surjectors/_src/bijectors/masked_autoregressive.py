@@ -7,7 +7,7 @@ from surjectors._src.bijectors.bijector import Bijector
 from surjectors._src.conditioners.nn.made import MADE
 
 
-# pylint: disable=too-many-arguments, arguments-renamed
+# pylint: disable=too-many-arguments,arguments-renamed
 class MaskedAutoregressive(Bijector):
     """A masked autoregressive layer.
 
@@ -38,16 +38,6 @@ class MaskedAutoregressive(Bijector):
         event_ndims: int = 1,
         inner_event_ndims: int = 0,
     ):
-        """Construct a masked autoregressive layer.
-
-        Args:
-            conditioner: a MADE network
-            bijector_fn: a callable that returns the inner bijector that will
-                be used to transform the input
-            event_ndims: the number of array dimensions the bijector operates on
-            inner_event_ndims: tthe number of array dimensions the bijector
-                operates on
-        """
         if event_ndims is not None and event_ndims < inner_event_ndims:
             raise ValueError(
                 f"'event_ndims={event_ndims}' should be at least as"

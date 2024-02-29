@@ -68,7 +68,7 @@ class RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel(
             range_min: minimum range of the spline
             range_max: maximum range of the spline
         """
-        warnings.warn("class has not been tested. use at own risk")
+        warnings.warn("class has not been tested properly. use at own risk")
         self.range_min = range_min
         self.range_max = range_max
 

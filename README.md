@@ -11,14 +11,12 @@
 
 Surjectors is a light-weight library for density estimation using
 inference and generative surjective normalizing flows, i.e., flows can that reduce or increase dimensionality.
-Surjectors builds on Distrax and Haiku and is fully compatible with both of them.
-
 Surjectors makes use of
 
-- Haiku`s module system for neural networks,
-- Distrax for probability distributions and some base bijectors,
-- Optax for gradient-based optimization,
-- JAX for autodiff and XLA computation.
+- [Haiku](https://github.com/deepmind/dm-haiku)`s module system for neural networks,
+- [Distrax](https://github.com/deepmind/distrax) for probability distributions and some base bijectors,
+- [Optax](https://github.com/deepmind/optax) for gradient-based optimization,
+- [JAX](https://github.com/google/jax) for autodiff and XLA computation.
 
 ## Examples
 

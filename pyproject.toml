@@ -101,3 +101,4 @@ skips = ["B101"]
 [tool.pydocstyle]
 convention= 'google'
 match = '^surjectors/.*/((?!_test).)*\.py'
+add-ignore = ["D107"]
