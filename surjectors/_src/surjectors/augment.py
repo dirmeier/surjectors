@@ -5,15 +5,14 @@ from surjectors._src.surjectors.surjector import Surjector
 
 
 class Augment(Surjector):
-    """Augment generative funnel."""
+    """Augment generative funnel.
+
+    Args:
+        n_keep: number of dimensions to keep
+        encoder: encoder callable
+    """
 
     def __init__(self, n_keep, encoder):
-        """Construct an augmentation layer.
-
-        Args:
-            n_keep: number of dimensions to keep
-            encoder: encoder callable
-        """
         self.n_keep = n_keep
         self.encoder = encoder
 

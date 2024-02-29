@@ -1,13 +1,16 @@
-from typing import List
-
 from surjectors._src._transform import Transform
 from surjectors._src.surjectors.surjector import Surjector
 
 
+# type: ignore[B009]
 class Chain(Surjector):
     """Chain of normalizing flows.
 
     Can be used to concatenate several normalizing flows together.
+
+    Args:
+        transforms: a list of transformations, such as bijections or
+            surjections
 
     Examples:
         >>> from surjectors import Slice, Chain
@@ -16,13 +19,7 @@ class Chain(Surjector):
         >>> ab = Chain([a, b])
     """
 
-    def __init__(self, transforms: List[Transform]):
-        """Constructs a Chain.
-
-        Args:
-            transforms: a list of transformations, such as bijections or
-                surjections
-        """
+    def __init__(self, transforms: list[Transform]):
         self._transforms = transforms
 
     def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):

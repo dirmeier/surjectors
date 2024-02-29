@@ -15,10 +15,10 @@ Surjectors builds on Distrax and Haiku and is fully compatible with both of them
 
 Surjectors makes use of
 
-- Haiku`s module system for neural networks,
-- Distrax for probability distributions and some base bijectors,
-- Optax for gradient-based optimization,
-- JAX for autodiff and XLA computation.
+- `Haiku's <https://github.com/deepmind/dm-haiku>`_ module system for neural networks,
+- `Distrax <https://github.com/deepmind/distrax>`_ for probability distributions and some base bijectors,
+- `Optax <https://github.com/deepmind/optax>`_ for gradient-based optimization,
+- `JAX <https://github.com/google/jax>`_ for autodiff and XLA computation.
 
 Example
 -------
@@ -89,6 +89,23 @@ In order to contribute:
 3) implement your contribution and ideally a test case,
 4) test it by calling :code:`hatch run test` on the (Unix) command line,
 5) submit a PR 🙂
+
+Citing Surjectors
+-----------------
+
+.. code-block:: latex
+
+    @article{dirmeier2024surjectors,
+        author = {Simon Dirmeier},
+        title = {Surjectors: surjection layers for density estimation with normalizing flows},
+        year = {2024},
+        journal = {Journal of Open Source Software},
+        publisher = {The Open Journal},
+        volume = {9},
+        number = {94},
+        pages = {6188},
+        doi = {10.21105/joss.06188}
+    }
 
 License
 -------

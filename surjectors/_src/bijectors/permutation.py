@@ -6,6 +6,11 @@ from jax import numpy as jnp
 class Permutation(distrax.Bijector):
     """Permute the dimensions of a vector.
 
+    Args:
+        permutation: a vector of integer indexes representing the order of
+            the elements
+        event_ndims_in: number of input event dimensions
+
     Examples:
         >>> from surjectors import Permutation
         >>> from jax import numpy as jnp
@@ -15,40 +20,13 @@ class Permutation(distrax.Bijector):
     """
 
     def __init__(self, permutation, event_ndims_in: int):
-        """Construct a permutation layer.
-
-        Args:
-            permutation: a vector of integer indexes representing the order of
-                the elements
-            event_ndims_in: number of input event dimensions
-        """
         super().__init__(event_ndims_in)
         self.permutation = permutation
 
-    def forward_and_log_det(self, z):
-        """Compute the forward transformation and its Jacobian determinant.
-
-        Args:
-           z: event for which the forward transform and likelihood contribution
-               is computed
-
-        Returns:
-           tuple of two arrays of floats. The first one is the forward
-           transformation, the second one its likelihood contribution
-        """
+    def _forward_and_likelihood_contribution(self, z):
         return z[..., self.permutation], jnp.full(jnp.shape(z)[:-1], 0.0)
 
-    def inverse_and_log_det(self, y):
-        """Compute the inverse transformation and its Jacobian determinant.
-
-        Args:
-            y: event for which the inverse and likelihood contribution is
-                computed
-
-        Returns:
-            tuple of two arrays of floats. The first one is the inverse
-            transformation, the second one its likelihood contribution
-        """
+    def _inverse_and_likelihood_contribution(self, y):
         size = self.permutation.size
         permutation_inv = (
             jnp.zeros(size, dtype=jnp.result_type(int))

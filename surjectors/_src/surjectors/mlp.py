@@ -10,10 +10,9 @@ from surjectors._src.surjectors.surjector import Surjector
 class MLPInferenceFunnel(Surjector, hk.Module):
     """A multilayer perceptron inference funnel.
 
-    References:
-        .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood
-            with dimensionality reduction". Workshop on Bayesian Deep Learning,
-            Advances in Neural Information Processing Systems, 2021.
+    Args:
+        n_keep: number of dimensions to keep
+        decoder: a conditional probability function
 
     Examples:
         >>> import distrax
@@ -31,15 +30,14 @@ class MLPInferenceFunnel(Surjector, hk.Module):
         >>>
         >>> decoder = decoder_fn(5)
         >>> a = MLPInferenceFunnel(10, decoder)
+
+    References:
+        .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood
+            with dimensionality reduction". Workshop on Bayesian Deep Learning,
+            Advances in Neural Information Processing Systems, 2021.
     """
 
     def __init__(self, n_keep: int, decoder: Callable):
-        """Constructs a MLPInferenceFunnel layer.
-
-        Args:
-            n_keep: number of dimensions to keep
-            decoder: a conditional probability function
-        """
         super().__init__()
         self._r = LULinear(n_keep, False)
         self._w_prime = hk.Linear(n_keep, True)

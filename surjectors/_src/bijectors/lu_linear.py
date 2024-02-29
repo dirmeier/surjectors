@@ -10,6 +10,11 @@ from surjectors._src.bijectors.bijector import Bijector
 class LULinear(Bijector, hk.Module):
     """An bijection based on the LU composition.
 
+    Args:
+        n_dimension: number of dimensions to keep
+        with_bias: use a bias term or not
+        dtype: parameter dtype
+
     References:
         .. [1] Oliva, Junier, et al. "Transformation Autoregressive Networks".
             Proceedings of the 35th International Conference on
@@ -21,13 +26,6 @@ class LULinear(Bijector, hk.Module):
     """
 
     def __init__(self, n_dimension, with_bias=False, dtype=jnp.float32):
-        """Constructs a LULinear layer.
-
-        Args:
-            n_dimension: number of dimensions to keep
-            with_bias: use a bias term or not
-            dtype: parameter dtype
-        """
         super().__init__()
         if with_bias:
             raise NotImplementedError()

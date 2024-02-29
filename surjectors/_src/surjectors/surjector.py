@@ -10,7 +10,7 @@ class Surjector(Transform, ABC):
     """A surjective transformation."""
 
     def __call__(self, method, **kwargs):
-        """Call the Surjector.
+        """Call the surjector.
 
         Depending on "method", computes
         - inverse,

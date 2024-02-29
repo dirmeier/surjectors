@@ -3,6 +3,7 @@ import jax
 from jax import numpy as jnp
 
 
+# type: ignore[B008]
 def make_mlp(
     dims,
     activation=jax.nn.gelu,

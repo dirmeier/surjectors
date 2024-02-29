@@ -9,10 +9,9 @@ from surjectors._src.surjectors.surjector import Surjector
 class Slice(Surjector):
     """A slice funnel.
 
-    References:
-        .. [1] Nielsen, Didrik, et al. "SurVAE Flows: Surjections to Bridge the
-            Gap between VAEs and Flows". Advances in Neural Information
-            Processing Systems, 2020.
+    Args:
+        n_keep: number if dimensions to keep
+        decoder: callable
 
     Examples:
         >>> import distrax
@@ -29,15 +28,14 @@ class Slice(Surjector):
         >>>     return _fn
         >>>
         >>> layer = Slice(10, decoder_fn(10))
+
+    References:
+        .. [1] Nielsen, Didrik, et al. "SurVAE Flows: Surjections to Bridge the
+            Gap between VAEs and Flows". Advances in Neural Information
+            Processing Systems, 2020.
     """
 
     def __init__(self, n_keep: int, decoder: Callable):
-        """Constructs a slice layer.
-
-        Args:
-            n_keep: number if dimensions to keep
-            decoder: callable
-        """
         self.n_keep = n_keep
         self.decoder = decoder
 
