@@ -7,6 +7,7 @@ from surjectors._src.surjectors.masked_coupling_inference_funnel import (
 )
 
 
+# ruff: noqa: PLR0913
 class RationalQuadraticSplineMaskedCouplingInferenceFunnel(
     MaskedCouplingInferenceFunnel
 ):

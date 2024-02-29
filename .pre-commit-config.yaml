@@ -12,26 +12,6 @@ repos:
     - id: requirements-txt-fixer
     - id: trailing-whitespace
 
-- repo: https://github.com/asottile/pyupgrade
-  rev: v2.29.1
-  hooks:
-  - id: pyupgrade
-    args: [--py38-plus]
-
-- repo: https://github.com/psf/black
-  rev: 22.3.0
-  hooks:
-  - id: black
-    args: ["--config=pyproject.toml"]
-    files: "(surjectors|examples)"
-
-- repo: https://github.com/pycqa/isort
-  rev: 5.12.0
-  hooks:
-  - id: isort
-    args: ["--settings-path=pyproject.toml"]
-    files: "(surjectors|examples)"
-
 - repo: https://github.com/pycqa/bandit
   rev: 1.7.1
   hooks:

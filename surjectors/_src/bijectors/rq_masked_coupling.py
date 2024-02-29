@@ -6,7 +6,7 @@ from surjectors._src.bijectors.masked_coupling import MaskedCoupling
 from surjectors._src.distributions.transformed_distribution import Array
 
 
-# pylint: disable=too-many-arguments, arguments-renamed,too-many-ancestors
+# ruff: noqa: PLR0913
 class RationalQuadraticSplineMaskedCoupling(MaskedCoupling):
     """A rational quadratic spline masked coupling layer.
 

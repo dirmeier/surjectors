@@ -8,7 +8,7 @@ from surjectors._src.bijectors.bijector import Bijector
 from surjectors._src.distributions.transformed_distribution import Array
 
 
-# pylint: disable=too-many-arguments, arguments-renamed
+# ruff: noqa: PLR0913
 class MaskedCoupling(Bijector, distrax.MaskedCoupling):
     """A masked coupling layer.
 

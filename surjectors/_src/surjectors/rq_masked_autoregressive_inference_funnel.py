@@ -11,7 +11,7 @@ from surjectors._src.surjectors.masked_autoregressive_inference_funnel import (
 )
 
 
-# pylint: disable=too-many-arguments, arguments-renamed
+# ruff: noqa: PLR0913
 class RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel(
     MaskedAutoregressiveInferenceFunnel
 ):

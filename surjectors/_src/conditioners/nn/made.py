@@ -11,7 +11,7 @@ from tensorflow_probability.substrates.jax.bijectors.masked_autoregressive impor
 from surjectors._src.conditioners.nn.masked_linear import MaskedLinear
 
 
-# pylint: disable=too-many-arguments, arguments-renamed
+# ruff: noqa: PLR0913
 class MADE(hk.Module):
     """Masked Autoregressive Density Estimator.
 

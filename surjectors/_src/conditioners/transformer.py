@@ -64,7 +64,7 @@ class _AutoregressiveTransformerEncoder(hk.Module):
         return hk.Linear(self.output_size)(h)
 
 
-# pylint: disable=too-many-arguments
+# ruff: noqa: PLR0913
 def make_transformer(
     output_size,
     num_heads=4,
