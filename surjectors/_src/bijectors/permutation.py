@@ -21,13 +21,13 @@ class Permutation(Bijector):
     """
 
     def __init__(self, permutation, event_ndims_in: int):
-        super().__init__(event_ndims_in)
         self.permutation = permutation
+        self.event_ndims_in = event_ndims_in
 
-    def _forward_and_likelihood_contribution(self, z):
+    def _forward_and_likelihood_contribution(self, z, **kwargs):
         return z[..., self.permutation], jnp.full(jnp.shape(z)[:-1], 0.0)
 
-    def _inverse_and_likelihood_contribution(self, y):
+    def _inverse_and_likelihood_contribution(self, y, **kwargs):
         size = self.permutation.size
         permutation_inv = (
             jnp.zeros(size, dtype=jnp.result_type(int))
