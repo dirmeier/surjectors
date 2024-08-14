@@ -1,9 +1,10 @@
-import distrax
 from jax import numpy as jnp
+
+from surjectors._src.bijectors.bijector import Bijector
 
 
 # pylint: disable=arguments-renamed
-class Permutation(distrax.Bijector):
+class Permutation(Bijector):
     """Permute the dimensions of a vector.
 
     Args:
