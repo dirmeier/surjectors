@@ -1,8 +1,11 @@
+from typing import Union
+
 import chex
 import distrax
 import haiku as hk
 from distrax import Distribution
 from jax import Array
+from tensorflow_probability.substrates.jax import distributions as tfd
 
 from surjectors._src.surjectors.surjector import Surjector
 
@@ -31,7 +34,11 @@ class TransformedDistribution:
         >>> )
     """
 
-    def __init__(self, base_distribution: Distribution, transform: Surjector):
+    def __init__(
+        self,
+        base_distribution: Union[Distribution, tfd.Distribution],
+        transform: Surjector,
+    ):
         self.base_distribution = base_distribution
         self.transform = transform
 
@@ -118,7 +125,12 @@ class TransformedDistribution:
         if x is not None:
             chex.assert_equal(sample_shape[0], x.shape[0])
 
-        z, lp_z = self.base_distribution.sample_and_log_prob(
+        sample_and_log_prob_fn = getattr(
+            self.base_distribution,
+            "sample_and_log_prob",
+            self.base_distribution.experimental_sample_and_log_prob,
+        )
+        z, lp_z = sample_and_log_prob_fn(
             seed=hk.next_rng_key(),
             sample_shape=sample_shape,
         )
