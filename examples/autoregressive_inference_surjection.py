@@ -1,3 +1,4 @@
+import argparse
 from collections import namedtuple
 
 import distrax
@@ -99,14 +100,14 @@ def train(rng_seq, data, model, max_n_iter=1000):
     return params, losses
 
 
-def run():
+def run(n_iter):
     n, p = 1000, 20
     rng_seq = hk.PRNGSequence(2)
     y = jr.normal(next(rng_seq), shape=(n, p))
     data = namedtuple("named_dataset", "y")(y)
 
     model = make_model(p)
-    params, losses = train(rng_seq, data, model)
+    params, losses = train(rng_seq, data, model, n_iter)
     plt.plot(losses)
     plt.show()
 
@@ -115,4 +116,7 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--n-iter", type=int, default=1_000)
+    args = parser.parse_args()
+    run(args.n_iter)
