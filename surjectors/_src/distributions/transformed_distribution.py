@@ -125,15 +125,17 @@ class TransformedDistribution:
         if x is not None:
             chex.assert_equal(sample_shape[0], x.shape[0])
 
-        sample_and_log_prob_fn = getattr(
-            self.base_distribution,
-            "sample_and_log_prob",
-            self.base_distribution.experimental_sample_and_log_prob,
-        )
-        z, lp_z = sample_and_log_prob_fn(
-            seed=hk.next_rng_key(),
-            sample_shape=sample_shape,
-        )
+        try:
+            z, lp_z = self.base_distribution.sample_and_log_prob(
+                seed=hk.next_rng_key(),
+                sample_shape=sample_shape,
+            )
+        except AttributeError:
+            z, lp_z = self.base_distribution.experimental_sample_and_log_prob(
+                seed=hk.next_rng_key(),
+                sample_shape=sample_shape,
+            )
+
         y, fldj = self.transform.forward_and_likelihood_contribution(z, x=x)
         lp = lp_z - fldj
         return y, lp

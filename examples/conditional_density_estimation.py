@@ -1,3 +1,5 @@
+import argparse
+
 import distrax
 import haiku as hk
 import jax
@@ -49,9 +51,7 @@ def make_model(dim, model="coupling"):
                 layer = MaskedAutoregressive(
                     bijector_fn=_bijector_fn,
                     conditioner=MADE(
-                        2,
-                        [32, 32, 2 * 2],
-                        2,
+                        2, [32, 32], 2,
                         w_init=hk.initializers.TruncatedNormal(0.01),
                         b_init=jnp.zeros,
                     ),
@@ -104,7 +104,7 @@ def train(rng_seq, data, model, max_n_iter=1000):
     return params, losses
 
 
-def run():
+def run(n_iter, model):
     n = 10000
     thetas = distrax.Normal(jnp.zeros(2), jnp.full(2, 10)).sample(
         seed=random.PRNGKey(0), sample_shape=(n,)
@@ -114,8 +114,8 @@ def run():
     )
     data = named_dataset(y, thetas)
 
-    model = make_model(2)
-    params, losses = train(hk.PRNGSequence(2), data, model)
+    model = make_model(2, model)
+    params, losses = train(hk.PRNGSequence(2), data, model, n_iter)
     samples = model.apply(
         params,
         random.PRNGKey(2),
@@ -129,4 +129,10 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--n-iter", type=int, default=1_000)
+    parser.add_argument("--model", type=str, default="coupling")
+    args = parser.parse_args()
+    run(args.n_iter, args.model)
+
+
