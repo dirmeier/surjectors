@@ -7,6 +7,12 @@ on:
     branches: [ main ]
 
 jobs:
+  precommit:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
   examples:
     runs-on: ubuntu-latest
     needs:
@@ -27,7 +33,7 @@ jobs:
         run: |
           pip install jaxlib jax
           pip install .
-      - name: Run examples
+      - name: Run tests
         run: |
             python examples/autoregressive_inference_surjection.py --n-iter 10
             python examples/conditional_density_estimation.py --n-iter 10 --model coupling
