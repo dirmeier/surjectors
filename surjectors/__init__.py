@@ -1,8 +1,8 @@
 """surjectors: Surjection layers for density estimation with normalizing flows."""
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
-from distrax import ScalarAffine
+from distrax import RationalQuadraticSpline, ScalarAffine
 
 from surjectors._src.bijectors.affine_masked_autoregressive import (
     AffineMaskedAutoregressive,
@@ -63,4 +63,5 @@ __all__ = [
     "Slice",
     # "Augment",
     "ScalarAffine",
+    "RationalQuadraticSpline",
 ]
