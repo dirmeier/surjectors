@@ -14,6 +14,7 @@ from surjectors import (
     MaskedAutoregressive,
     MaskedCoupling,
     Permutation,
+    ScalarAffine,
     TransformedDistribution,
 )
 from surjectors.nn import MADE, make_mlp
@@ -24,11 +25,10 @@ from surjectors.util import (
     unstack,
 )
 
-
 def make_model(dim, model="coupling"):
     def _bijector_fn(params):
         means, log_scales = unstack(params, -1)
-        return distrax.ScalarAffine(means, jnp.exp(log_scales))
+        return ScalarAffine(means, jnp.exp(log_scales))
 
     def _flow(method, **kwargs):
         layers = []
@@ -40,7 +40,7 @@ def make_model(dim, model="coupling"):
                     mask=mask,
                     bijector_fn=_bijector_fn,
                     conditioner=hk.Sequential(
-                        [
+                        layers=[
                             make_mlp([8, 8, dim * 2]),
                             hk.Reshape((dim, dim)),
                         ]
@@ -62,6 +62,7 @@ def make_model(dim, model="coupling"):
         if model != "coupling":
             layers = layers[:-1]
         chain = Chain(layers)
+
 
         base_distribution = distrax.Independent(
             distrax.Normal(jnp.zeros(dim), jnp.ones(dim)),
@@ -134,5 +135,3 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, default="coupling")
     args = parser.parse_args()
     run(args.n_iter, args.model)
-
-

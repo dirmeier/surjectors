@@ -1,5 +1,14 @@
-PKG_VERSION=`hatch version`
+.PHONY: tests, lints, docs, format
 
-tag:
-	git tag -a v${PKG_VERSION} -m v${PKG_VERSION}
-	git push --tag
+tests:
+	uv run pytest
+
+lints:
+	uv run ruff check ramsey examples
+
+format:
+	uv run ruff check --select I --fix surjectors examples
+	uv run ruff format surjectors examples
+
+docs:
+	cd docs && make html

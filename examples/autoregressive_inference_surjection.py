@@ -33,7 +33,7 @@ def _decoder_fn(n_dim):
 
 def _made_bijector_fn(params):
     means, log_scales = unstack(params, -1)
-    return distrax.Inverse(distrax.ScalarAffine(means, jnp.exp(log_scales)))
+    return surjectors.Inverse(surjectors.ScalarAffine(means, jnp.exp(log_scales)))
 
 
 def make_model(n_dimensions):

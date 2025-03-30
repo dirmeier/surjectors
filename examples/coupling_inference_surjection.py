@@ -33,7 +33,7 @@ def _decoder_fn(n_dim):
 
 def bijector_fn(params):
     shift, log_scale = jnp.split(params, 2, axis=-1)
-    return distrax.ScalarAffine(shift, jnp.exp(log_scale))
+    return surjectors.ScalarAffine(shift, jnp.exp(log_scale))
 
 
 def make_model(n_dimensions):
@@ -120,5 +120,3 @@ if __name__ == "__main__":
     parser.add_argument("--n-iter", type=int, default=1_000)
     args = parser.parse_args()
     run(args.n_iter)
-
-
