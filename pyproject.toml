@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "surjectors"
 description = "Surjection layers for density estimation with normalizing flows"
-authors = [{name = "Simon Dirmeier", email = "sfyrbnd@pm.me"}]
+authors = [{name = "Simon Dirmeier", email = "simd23@pm.me"}]
 readme = "README.md"
 license = { file = "LICENCE" }
 keywords = ["normalizing flows", "surjections", "density estimation"]
@@ -14,25 +14,38 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "distrax>=0.1.4",
     "dm-haiku>=0.0.10",
     "jaxlib>=0.4.18",
     "jax>=0.4.18",
-    "optax>=0.1.7"
+    "optax>=0.1.7",
+    "tfp-nightly>=0.26.0.dev20250828",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-all = ["matplotlib"]
+all = []
 
 [project.urls]
 Homepage = "https://github.com/dirmeier/surjectors"
+
+[dependency-groups]
+dev = [
+    "gitlint",
+    "jupyter",
+    "pre-commit",
+    "pytest>=7.2.0",
+    "pytest-cov>=4.0.0",
+    "ruff",
+]
+examples = [
+    "matplotlib>=3.10.5",
+]
 
 [tool.setuptools]
 packages = ["surjectors"]
@@ -47,13 +60,15 @@ skips = ["B101", "B310"]
 show_error_codes = true
 no_implicit_optional = true
 
-[tool.pytest]
+[tool.pytest.ini_options]
 addopts = "-v --doctest-modules --cov=./surjectors --cov-report=xml"
+testpaths = [
+    "surjectors"
+]
 
 [tool.ruff]
 indent-width = 2
 line-length = 80
-exclude = ["*_test.py", "docs/**", "examples/**"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]
@@ -66,11 +81,6 @@ convention= 'google'
 
 [tool.uv]
 upgrade-package = ["jax", "jaxlib", "dm-haiku"]
-dev-dependencies = [
-    "gitlint",
-    "jupyter",
-    "pre-commit",
-    "pytest>=7.2.0",
-    "pytest-cov>=4.0.0",
-    "ruff",
+override-dependencies = [
+    "numpy>=2.0.0",
 ]

@@ -49,7 +49,7 @@ def make_alternating_binary_mask(n_dim: int, even_idx_as_true: bool = False):
 
 def as_batch_iterator(
   rng_key: jr.PRNGKey, data: named_dataset, batch_size: int, shuffle=True
-):
+) -> _DataLoader:
   """Create a batch iterator for a data set.
 
   Args:
@@ -66,12 +66,13 @@ def as_batch_iterator(
       >>> from jax import numpy as jnp, random as jr
       >>>
       >>> y = jr.normal(jr.PRNGKey(0), (1000, 2))
-      >>> as_batch_iterator(jr.PRNGKey(1), namedtuple("data", "y")(y), 100)
-      >>>
+      >>> loader = as_batch_iterator(
+      ...   jr.PRNGKey(1), namedtuple("data", "y")(y), 100
+      ... )
       >>> x = jr.normal(jr.PRNGKey(1), (1000, 2))
-      >>> as_batch_iterator(
-      >>>     jr.PRNGKey(1), namedtuple("data", "y x")(y, x), 100
-      >>> )
+      >>> loader = as_batch_iterator(
+      ...   jr.PRNGKey(1), namedtuple("data", "y x")(y, x), 100
+      ... )
 
   Returns:
       a data loader object

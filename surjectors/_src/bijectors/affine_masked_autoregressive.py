@@ -22,12 +22,27 @@ class AffineMaskedAutoregressive(MaskedAutoregressive):
           Systems, 2017.
 
   Examples:
-      >>> import distrax
-      >>> from surjectors import AffineMaskedAutoregressive
-      >>>
-      >>> layer = AffineMaskedAutoregressive(
-      >>>     conditioner=MADE(10, [8, 8], 2),
-      >>> )
+      >>> import haiku as hk
+      >>> from jax import random as jr
+      >>> from tensorflow_probability.substrates.jax import distributions as tfd
+      >>> from surjectors import AffineMaskedAutoregressive, TransformedDistribution
+
+      >>> @hk.without_apply_rng
+      ... @hk.transform
+      ... def fn(inputs):
+      ...   base_distribution = tfd.Independent(
+      ...     tfd.Normal(jnp.zeros(10), jnp.ones(10)),
+      ...     reinterpreted_batch_ndims=1,
+      ...   )
+      ...   td = TransformedDistribution(
+      ...     base_distribution,
+      ...     AffineMaskedAutoregressive(MADE(10, (64, 64), 2))
+      ...  )
+      ...   return td.log_prob(inputs)
+
+      >>> data = jr.normal(jr.PRNGKey(1), shape=(10, 10))
+      >>> params = fn.init(jr.key(0), data)
+      >>> lps = fn.apply(params, data)
   """
 
   def __init__(

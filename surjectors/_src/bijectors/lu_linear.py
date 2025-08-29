@@ -10,19 +10,35 @@ from surjectors._src.bijectors.bijector import Bijector
 class LULinear(Bijector, hk.Module):
   """An bijection based on the LU composition.
 
-  Args:
+    Args:
       n_dimension: number of dimensions to keep
       with_bias: use a bias term or not
       dtype: parameter dtype
 
-  References:
+    References:
       .. [1] Oliva, Junier, et al. "Transformation Autoregressive Networks".
-          Proceedings of the 35th International Conference on
-          Machine Learning, 2018.
+         Proceedings of the 35th International Conference on
+        Machine Learning, 2018.
 
-  Examples:
-      >>> from surjectors import LULinear
-      >>> layer = LULinear(10)
+    Examples:
+      >>> import haiku as hk
+      >>> from jax import random as jr
+      >>> from tensorflow_probability.substrates.jax import distributions as tfd
+      >>> from surjectors import LULinear, TransformedDistribution
+
+      >>> @hk.without_apply_rng
+      ... @hk.transform
+      ... def fn(inputs):
+      ...   base_distribution = tfd.Independent(
+      ...     tfd.Normal(jnp.zeros(5), jnp.ones(5)),
+      ...     reinterpreted_batch_ndims=1,
+      ...   )
+      ...   td = TransformedDistribution(base_distribution, LULinear(5))
+      ...   return td.log_prob(inputs)
+
+      >>> data = jr.normal(jr.PRNGKey(1), shape=(10, 5))
+      >>> params = fn.init(jr.key(0), data)
+      >>> lps = fn.apply(params, data)
   """
 
   def __init__(self, n_dimension, with_bias=False, dtype=jnp.float32):

@@ -31,9 +31,9 @@ class AffineMaskedCoupling(MaskedCoupling):
       >>> from surjectors.util import make_alternating_binary_mask
       >>>
       >>> layer = MaskedCoupling(
-      >>>     mask=make_alternating_binary_mask(10, True),
-      >>>     conditioner=make_mlp([8, 8, 10 * 2]),
-      >>> )
+      ...     mask=make_alternating_binary_mask(10, True),
+      ...     conditioner=make_mlp([8, 8, 10 * 2]),
+      ... )
   """
 
   def __init__(

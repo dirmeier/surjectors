@@ -82,12 +82,19 @@ Contributions in the form of pull requests are more than welcome. A good way to 
 
 In order to contribute:
 
-1) Clone `Surjectors` and install `hatch` via `pip install hatch`,
-2) create a new branch locally `git checkout -b feature/my-new-feature` or `git checkout -b issue/fixes-bug`,
-3) implement your contribution and ideally a test case,
-4) test it by calling `hatch run test` on the (Unix) command line,
-5) submit a PR 🙂
+1) Clone `surjectors` and install  `uv` from [here](https://github.com/astral-sh/uv).
+2) Create a new branch locally `git checkout -b feature/my-new-feature` or `git checkout -b issue/fixes-bug`.
+3) Install all dependencies via `uv sync --all-groups`.
+4) Activate the virtual environment: `source .venv/bin/activate`.
+5) Install `pre-commit` and `gitlint` via:
 
+   ```shell
+   pre-commit install
+   gitlint install-hook
+   ``` 
+6) Implement your contribution and ideally a test case.
+7) Test it by calling `make format`, `make lints` and `make tests` on the (Unix) command line.
+8) Submit a PR 🙂.
 
 ## Citing Surjectors
 
@@ -109,4 +116,4 @@ If you find our work relevant to your research, please consider citing:
 
 ## Author
 
-Simon Dirmeier <a href="mailto:sfyrbnd @ pm me">sfyrbnd @ pm me</a>
+Simon Dirmeier <a href="mailto:simd23 @ pm me">simd23 @ pm me</a>

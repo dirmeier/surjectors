@@ -20,13 +20,13 @@ class MADE(hk.Module):
 
   Examples:
       >>> from surjectors.nn import MADE
-      >>> made = MADE(10, [32, 32], 2)
+      >>> made = MADE(10, (32, 32), 2)
   """
 
   def __init__(
     self,
     input_size: int,
-    hidden_layer_sizes: list[int] | tuple[int],
+    hidden_layer_sizes: tuple[int, ...],
     n_params: int,
     w_init: hk.initializers.Initializer | None = None,
     b_init: hk.initializers.Initializer | None = None,
