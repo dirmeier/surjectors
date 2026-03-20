@@ -155,3 +155,5 @@ cython_debug/
 .vscode/
 
 poetry.lock
+
+.DS_Store

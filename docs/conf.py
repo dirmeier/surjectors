@@ -50,7 +50,8 @@ html_theme_options = {
     "repository_url": "https://github.com/dirmeier/surjectors",
     "use_repository_button": True,
     "use_download_button": False,
-    "extra_navbar": ""
+    "use_fullscreen_button": False,
+    "launch_buttons": {"colab_url": "https://colab.research.google.com"},
 }
 
 html_title = "Surjectors 🚀"
