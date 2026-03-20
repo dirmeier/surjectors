@@ -22,26 +22,47 @@ class RationalQuadraticSplineMaskedCouplingInferenceFunnel(
       range_max: maximum range of the spline
 
   Examples:
-      >>> import distrax
+      >>> import haiku as hk
       >>> from jax import numpy as jnp
-      >>> from surjectors import \
-        >>>     RationalQuadraticSplineMaskedCouplingInferenceFunnel
+      >>> from jax import random as jr
+      >>> from tensorflow_probability.substrates.jax import distributions as tfd
+      >>> from surjectors import TransformedDistribution
+      >>> from surjectors import RationalQuadraticSplineMaskedCouplingInferenceFunnel
       >>> from surjectors.nn import make_mlp
       >>>
       >>> def decoder_fn(n_dim):
-      >>>     def _fn(z):
-      >>>         params = make_mlp([4, 4, n_dim * 2])(z)
-      >>>         mu, log_scale = jnp.split(params, 2, -1)
-      >>>         return distrax.Independent(
-      >>>             distrax.Normal(mu, jnp.exp(log_scale))
-      >>>         )
-      >>>     return _fn
+      ...     def _fn(z):
+      ...         params = make_mlp((64, 64, n_dim * 2))(z)
+      ...         mu, log_scale = jnp.split(params, 2, -1)
+      ...         return tfd.Independent(
+      ...             tfd.Normal(mu, jnp.exp(log_scale))
+      ...         )
+      ...     return _fn
       >>>
-      >>> layer = RationalQuadraticSplineMaskedCouplingInferenceFunnel(
-      >>>     n_keep=10,
-      >>>     decoder=decoder_fn(10),
-      >>>     conditioner=make_mlp([4, 4, 10 * 2])(z),
-      >>> )
+      >>> @hk.without_apply_rng
+      ... @hk.transform
+      ... def fn(inputs, num_params=3):
+      ...   base_distribution = tfd.Independent(
+      ...     tfd.Normal(jnp.zeros(4), jnp.ones(4)),
+      ...     reinterpreted_batch_ndims=1,
+      ...   )
+      ...   td = TransformedDistribution(
+      ...     base_distribution,
+      ...     RationalQuadraticSplineMaskedCouplingInferenceFunnel(
+      ...       n_keep=4,
+      ...       decoder=decoder_fn(10 - 4),
+      ...       conditioner=hk.Sequential([
+      ...         make_mlp((64, 64, 10 * (3 * num_params + 1))),
+      ...         hk.Reshape((10, 3 * num_params + 1), preserve_dims=-1)
+      ...       ]),
+      ...       range_min=-2, range_max=2
+      ...     )
+      ...   )
+      ...   return td.log_prob(inputs)
+      >>>
+      >>> data = jr.normal(jr.PRNGKey(1), shape=(10, 10))
+      >>> params = fn.init(jr.key(0), data)
+      >>> lps = fn.apply(params, data)
 
   References:
       .. [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood

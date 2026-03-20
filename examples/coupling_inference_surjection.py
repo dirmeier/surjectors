@@ -8,6 +8,7 @@ import optax
 from jax import numpy as jnp
 from jax import random as jr
 from matplotlib import pyplot as plt
+from tensorflow_probability.substrates.jax import distributions as tfd
 
 import surjectors
 from surjectors import (
@@ -21,12 +22,12 @@ from surjectors.util import as_batch_iterator, make_alternating_binary_mask
 
 
 def _decoder_fn(n_dim):
-  decoder_net = make_mlp([4, 4, n_dim * 2])
+  decoder_net = make_mlp((4, 4, n_dim * 2))
 
   def _fn(z):
     params = decoder_net(z)
     mu, log_scale = jnp.split(params, 2, -1)
-    return distrax.Independent(distrax.Normal(mu, jnp.exp(log_scale)))
+    return tfd.Independent(tfd.Normal(mu, jnp.exp(log_scale)))
 
   return _fn
 
@@ -45,7 +46,7 @@ def make_model(n_dimensions):
         layer = AffineMaskedCouplingInferenceFunnel(
           n_keep=int(n_dim / 2),
           decoder=_decoder_fn(int(n_dim / 2)),
-          conditioner=make_mlp([8, 8, n_dim * 2]),
+          conditioner=make_mlp((8, 8, n_dim * 2)),
         )
         n_dim = int(n_dim / 2)
       else:
@@ -58,8 +59,8 @@ def make_model(n_dimensions):
       layers.append(layer)
     chain = Chain(layers)
 
-    base_distribution = distrax.Independent(
-      distrax.Normal(jnp.zeros(n_dim), jnp.ones(n_dim)),
+    base_distribution = tfd.Independent(
+      tfd.Normal(jnp.zeros(n_dim), jnp.ones(n_dim)),
       reinterpreted_batch_ndims=1,
     )
     td = TransformedDistribution(base_distribution, chain)
@@ -70,7 +71,7 @@ def make_model(n_dimensions):
   return td
 
 
-def train(rng_seq, data, model, max_n_iter=1000):
+def train(rng_seq, data, model, n_iter=1000):
   train_iter = as_batch_iterator(next(rng_seq), data, 100, True)
   params = model.init(next(rng_seq), **train_iter(0))
 
@@ -88,8 +89,8 @@ def train(rng_seq, data, model, max_n_iter=1000):
     new_params = optax.apply_updates(params, updates)
     return loss, new_params, new_state
 
-  losses = np.zeros(max_n_iter)
-  for i in range(max_n_iter):
+  losses = np.zeros(n_iter)
+  for i in range(n_iter):
     train_loss = 0.0
     for j in range(train_iter.num_batches):
       batch = train_iter(j)

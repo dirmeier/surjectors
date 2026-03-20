@@ -10,29 +10,45 @@ class Slice(Surjector):
   """A slice funnel.
 
   Args:
-      n_keep: number if dimensions to keep
+      n_keep: number of dimensions to keep
       decoder: callable
 
   Examples:
-      >>> import distrax
-      >>> from surjectors import Slice
+      >>> import haiku as hk
+      >>> from jax import random as jr
+      >>> from tensorflow_probability.substrates.jax import distributions as tfd
       >>> from surjectors.nn import make_mlp
-      >>>
+      >>> from surjectors import Slice, TransformedDistribution
+
       >>> def decoder_fn(n_dim):
-      >>>     def _fn(z):
-      >>>         params = make_mlp([4, 4, n_dim * 2])(z)
-      >>>         mu, log_scale = jnp.split(params, 2, -1)
-      >>>         return distrax.Independent(
-      >>>             distrax.Normal(mu, jnp.exp(log_scale))
-      >>>         )
-      >>>     return _fn
+      ...   def fn(z):
+      ...     params = make_mlp((64, 64, n_dim * 2))(z)
+      ...     mu, log_scale = jnp.split(params, 2, -1)
+      ...     return tfd.Independent(
+      ...       tfd.Normal(mu, jnp.exp(log_scale))
+      ...     )
+      ...   return fn
       >>>
-      >>> layer = Slice(10, decoder_fn(10))
+      >>> @hk.without_apply_rng
+      ... @hk.transform
+      ... def fn(inputs):
+      ...   base_distribution = tfd.Independent(
+      ...     tfd.Normal(jnp.zeros(4), jnp.ones(4)),
+      ...     reinterpreted_batch_ndims=1,
+      ...   )
+      ...   td = TransformedDistribution(
+      ...     base_distribution,
+      ...     Slice(4, decoder_fn(10 - 4))
+      ...   )
+      ...   return td.log_prob(inputs)
+      >>> data = jr.normal(jr.PRNGKey(1), shape=(10, 10))
+      >>> params = fn.init(jr.key(0), data)
+      >>> lps = fn.apply(params, data)
 
   References:
-      .. [1] Nielsen, Didrik, et al. "SurVAE Flows: Surjections to Bridge the
-          Gap between VAEs and Flows". Advances in Neural Information
-          Processing Systems, 2020.
+    .. [1] Nielsen, Didrik, et al. "SurVAE Flows: Surjections to Bridge the
+       Gap between VAEs and Flows". Advances in Neural Information
+       Processing Systems, 2020.
   """
 
   def __init__(self, n_keep: int, decoder: Callable):

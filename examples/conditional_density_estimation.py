@@ -1,6 +1,5 @@
 import argparse
 
-import distrax
 import haiku as hk
 import jax
 import numpy as np
@@ -8,6 +7,7 @@ import optax
 from jax import numpy as jnp
 from jax import random
 from matplotlib import pyplot as plt
+from tensorflow_probability.substrates.jax import distributions as tfd
 
 from surjectors import (
   Chain,
@@ -42,7 +42,7 @@ def make_model(dim, model="coupling"):
           bijector_fn=_bijector_fn,
           conditioner=hk.Sequential(
             layers=[
-              make_mlp([8, 8, dim * 2]),
+              make_mlp((8, 8, dim * 2)),
               hk.Reshape((dim, dim)),
             ]
           ),
@@ -66,8 +66,8 @@ def make_model(dim, model="coupling"):
       layers = layers[:-1]
     chain = Chain(layers)
 
-    base_distribution = distrax.Independent(
-      distrax.Normal(jnp.zeros(dim), jnp.ones(dim)),
+    base_distribution = tfd.Independent(
+      tfd.Normal(jnp.zeros(dim), jnp.ones(dim)),
       reinterpreted_batch_ndims=1,
     )
     td = TransformedDistribution(base_distribution, chain)
@@ -77,7 +77,7 @@ def make_model(dim, model="coupling"):
   return td
 
 
-def train(rng_seq, data, model, max_n_iter=1000):
+def train(rng_seq, data, model, n_iter=1000):
   train_iter = as_batch_iterator(next(rng_seq), data, 100, True)
   params = model.init(next(rng_seq), method="log_prob", **train_iter(0))
 
@@ -95,8 +95,8 @@ def train(rng_seq, data, model, max_n_iter=1000):
     new_params = optax.apply_updates(params, updates)
     return loss, new_params, new_state
 
-  losses = np.zeros(max_n_iter)
-  for i in range(max_n_iter):
+  losses = np.zeros(n_iter)
+  for i in range(n_iter):
     train_loss = 0.0
     for j in range(train_iter.num_batches):
       batch = train_iter(j)
@@ -109,10 +109,10 @@ def train(rng_seq, data, model, max_n_iter=1000):
 
 def run(n_iter, model):
   n = 10000
-  thetas = distrax.Normal(jnp.zeros(2), jnp.full(2, 10)).sample(
+  thetas = tfd.Normal(jnp.zeros(2), jnp.full(2, 10)).sample(
     seed=random.PRNGKey(0), sample_shape=(n,)
   )
-  y = 2 * thetas + distrax.Normal(jnp.zeros_like(thetas), 0.1).sample(
+  y = 2 * thetas + tfd.Normal(jnp.zeros_like(thetas), 0.1).sample(
     seed=random.PRNGKey(1)
   )
   data = named_dataset(y, thetas)

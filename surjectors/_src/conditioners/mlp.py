@@ -5,8 +5,8 @@ from jax import numpy as jnp
 
 # type: ignore[B008]
 def make_mlp(
-  dims,
-  activation=jax.nn.gelu,
+  dims: tuple[int, ...],
+  activation=jax.nn.swish,
   w_init=hk.initializers.TruncatedNormal(stddev=0.01),
   b_init=jnp.zeros,
 ):

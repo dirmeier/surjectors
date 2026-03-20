@@ -2,7 +2,7 @@
 
 __version__ = "0.3.4"
 
-from distrax import RationalQuadraticSpline, ScalarAffine
+from distrax import Inverse, RationalQuadraticSpline, ScalarAffine
 
 from surjectors._src.bijectors.affine_masked_autoregressive import (
   AffineMaskedAutoregressive,
@@ -64,4 +64,5 @@ __all__ = [
   # "Augment",
   "ScalarAffine",
   "RationalQuadraticSpline",
+  "Inverse",
 ]

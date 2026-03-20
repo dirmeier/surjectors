@@ -10,42 +10,60 @@ readme = "README.md"
 license = { file = "LICENCE" }
 keywords = ["normalizing flows", "surjections", "density estimation"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "distrax>=0.1.4",
-    "dm-haiku>=0.0.10",
-    "jaxlib>=0.4.18",
-    "jax>=0.4.18",
+    "distrax>=0.1.7",
+    "dm-haiku>=0.0.16",
+    "jaxlib>=0.8.11",
+    "jax>=0.8.1",
     "optax>=0.1.7",
     "tfp-nightly>=0.26.0.dev20250828",
 ]
 dynamic = ["version"]
 
-[project.optional-dependencies]
-all = []
-
-[project.urls]
-Homepage = "https://github.com/dirmeier/surjectors"
-
 [dependency-groups]
 dev = [
-    "gitlint",
-    "jupyter",
-    "pre-commit",
-    "pytest>=7.2.0",
-    "pytest-cov>=4.0.0",
-    "ruff",
+    "gitlint>=0.19.1",
+    "jupyter>=1.1.1",
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.15.6",
+]
+docs = [
+    "ipykernel>=7.2.0",
+    "ipython>=9.11.0",
+    "nbsphinx>=0.9.8",
+    "pandas>=2.3.3",
+    "scikit-learn>=1.8.0",
+    "session-info>=1.0.1",
+    "sphinx>=9.1.0",
+    "sphinx-autobuild>=2025.8.25",
+    "sphinx-autodoc-typehints>=3.9.8",
+    "sphinx-book-theme==1.1.0",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-design>=0.7.0",
+    "sphinx-fontawesome>=0.0.6",
+    "sphinx-gallery>=0.20.0",
+    "sphinx-math-dollar>=1.3",
+    "sphinxcontrib-bibtex>=2.6.5",
+    "sphinxcontrib-fulltoc>=1.2.0",
 ]
 examples = [
     "matplotlib>=3.10.5",
 ]
+
+[project.urls]
+Homepage = "https://github.com/dirmeier/surjectors"
+Documentation = "https://surjectors.readthedocs.io"
 
 [tool.setuptools]
 packages = ["surjectors"]
@@ -61,7 +79,7 @@ show_error_codes = true
 no_implicit_optional = true
 
 [tool.pytest.ini_options]
-addopts = "-v --doctest-modules --cov=./surjectors --cov-report=xml"
+addopts = ["-v", "--doctest-modules", "--cov=./surjectors", "--cov-report=xml"]
 testpaths = [
     "surjectors"
 ]
@@ -69,6 +87,7 @@ testpaths = [
 [tool.ruff]
 indent-width = 2
 line-length = 80
+exclude = ["*_test.py", "docs/**", "examples/**"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]
@@ -81,6 +100,3 @@ convention= 'google'
 
 [tool.uv]
 upgrade-package = ["jax", "jaxlib", "dm-haiku"]
-override-dependencies = [
-    "numpy>=2.0.0",
-]
