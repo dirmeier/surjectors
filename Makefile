@@ -4,7 +4,7 @@ tests:
 	uv run pytest
 
 lints:
-	uv run ruff check ramsey examples
+	uv run ruff check surjectors examples
 
 format:
 	uv run ruff check --fix surjectors examples
