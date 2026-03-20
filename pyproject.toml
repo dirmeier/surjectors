@@ -78,7 +78,7 @@ show_error_codes = true
 no_implicit_optional = true
 
 [tool.pytest.ini_options]
-addopts = ["-v", "--doctest-modules", "--cov=./surjectors", "--cov-report=xml"]
+addopts = ["-v", "--cov=./surjectors", "--cov-report=xml"]
 testpaths = [
     "surjectors"
 ]

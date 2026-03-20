@@ -34,7 +34,7 @@ jobs:
           uv sync --all-groups
       - name: Run tests
         run: |
-            python examples/autoregressive_inference_surjection.py --n-iter 10
-            python examples/conditional_density_estimation.py --n-iter 10 --model coupling
-            python examples/conditional_density_estimation.py --n-iter 10 --model autoregressive
-            python examples/coupling_inference_surjection.py --n-iter 10
+            uv run python examples/autoregressive_inference_surjection.py --n-iter 10
+            uv run python examples/conditional_density_estimation.py --n-iter 10 --model coupling
+            uv run python examples/conditional_density_estimation.py --n-iter 10 --model autoregressive
+            uv run python examples/coupling_inference_surjection.py --n-iter 10
