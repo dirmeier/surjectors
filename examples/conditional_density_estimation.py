@@ -4,8 +4,7 @@ import haiku as hk
 import jax
 import numpy as np
 import optax
-from jax import numpy as jnp
-from jax import random
+from jax import numpy as jnp, random as jr
 from matplotlib import pyplot as plt
 from tensorflow_probability.substrates.jax import distributions as tfd
 
@@ -77,7 +76,7 @@ def make_model(dim, model="coupling"):
   return td
 
 
-def train(rng_seq, data, model, n_iter=1000):
+def train(rng_seq, data, model, n_iter=1_000):
   train_iter = as_batch_iterator(next(rng_seq), data, 100, True)
   params = model.init(next(rng_seq), method="log_prob", **train_iter(0))
 
@@ -109,11 +108,11 @@ def train(rng_seq, data, model, n_iter=1000):
 
 def run(n_iter, model):
   n = 10000
-  thetas = tfd.Normal(jnp.zeros(2), jnp.full(2, 10)).sample(
-    seed=random.PRNGKey(0), sample_shape=(n,)
+  thetas = tfd.Normal(jnp.zeros(2), jnp.full(2, 10.0)).sample(
+    seed=jr.key(0), sample_shape=(n,)
   )
-  y = 2 * thetas + tfd.Normal(jnp.zeros_like(thetas), 0.1).sample(
-    seed=random.PRNGKey(1)
+  y = 2 * thetas + tfd.Normal(jnp.zeros_like(thetas), jnp.array(0.1)).sample(
+    seed=jr.key(1)
   )
   data = named_dataset(y, thetas)
 
@@ -121,7 +120,7 @@ def run(n_iter, model):
   params, losses = train(hk.PRNGSequence(2), data, model, n_iter)
   samples = model.apply(
     params,
-    random.PRNGKey(2),
+    jr.key(2),
     method="sample",
     x=jnp.full_like(thetas, -2.0),
   )
