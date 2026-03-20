@@ -85,7 +85,7 @@ Contributions in the form of pull requests are more than welcome. A good way to 
 In order to contribute:
 
 1) Clone :code:`surjectors` and install :code:`uv` from `here <https://docs.astral.sh/uv/getting-started/installation/>`_,
-2) install all dependencies using ```uv sync``,
+2) install all dependencies using ``uv sync``,
 3) create a new branch locally :code:`git checkout -b feature/my-new-feature` or :code:`git checkout -b issue/fixes-bug`,
 4) implement your contribution and ideally a test case,
 5) test it by calling ``make format``, ``make lints`` and ``make tests`` on the (Unix) command line,
