@@ -26,13 +26,12 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
       - name: Install dependencies
         run: |
-          pip install hatch matplotlib
-      - name: Build package
-        run: |
-          pip install jaxlib jax
-          pip install .
+          uv sync --all-groups
       - name: Run tests
         run: |
             python examples/autoregressive_inference_surjection.py --n-iter 10
