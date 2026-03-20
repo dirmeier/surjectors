@@ -92,14 +92,6 @@ In order to contribute:
 6) Test it by calling `make tests`, `make lints` and `make format` on the (Unix) command line.
 7) Submit a PR 🙂.
 
-   ```shell
-   pre-commit install
-   gitlint install-hook
-   ```
-6) Implement your contribution and ideally a test case.
-7) Test it by calling `make format`, `make lints` and `make tests` on the (Unix) command line.
-8) Submit a PR 🙂.
-
 ## Citing Surjectors
 
 If you find our work relevant to your research, please consider citing:
