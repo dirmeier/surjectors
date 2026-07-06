@@ -1,7 +1,5 @@
-from abc import ABCMeta
-
-from distrax._src.utils import jittable
+from abc import ABC
 
 
-class Transform(jittable.Jittable, metaclass=ABCMeta):
+class Transform(ABC):
   """Transformation of a random variable."""
