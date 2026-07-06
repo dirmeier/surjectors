@@ -5,7 +5,6 @@ from jax import Array
 from surjectors._src._transform import Transform
 
 
-# pylint: disable=too-many-arguments
 class Surjector(Transform, ABC):
   """A surjective transformation."""
 
@@ -29,7 +28,7 @@ class Surjector(Transform, ABC):
     return getattr(self, method)(**kwargs)
 
   def inverse_and_likelihood_contribution(
-    self, y: Array, x: Array = None, **kwargs
+    self, y: Array, x: Array | None = None, **kwargs
   ):
     """Compute the inverse transformation and its likelihood contribution.
 
@@ -50,7 +49,7 @@ class Surjector(Transform, ABC):
     pass
 
   def forward_and_likelihood_contribution(
-    self, z: Array, x: Array = None, **kwargs
+    self, z: Array, x: Array | None = None, **kwargs
   ):
     """Compute the forward transformation and its likelihood contribution.
 
@@ -70,7 +69,7 @@ class Surjector(Transform, ABC):
   def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
     pass
 
-  def forward(self, z: Array, x: Array = None, **kwargs):
+  def forward(self, z: Array, x: Array | None = None, **kwargs):
     """Computes the forward transformation.
 
     Args:
@@ -84,7 +83,7 @@ class Surjector(Transform, ABC):
     y, _ = self.forward_and_likelihood_contribution(z, x=x, **kwargs)
     return y
 
-  def inverse(self, y: Array, x: Array = None, **kwargs):
+  def inverse(self, y: Array, x: Array | None = None, **kwargs):
     """Compute the inverse transformation.
 
     Args:

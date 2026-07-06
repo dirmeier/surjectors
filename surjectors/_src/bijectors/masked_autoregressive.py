@@ -7,7 +7,6 @@ from surjectors._src.bijectors.bijector import Bijector
 from surjectors._src.conditioners.nn.made import MADE
 
 
-# pylint: disable=too-many-arguments,arguments-renamed
 class MaskedAutoregressive(Bijector):
   """A masked autoregressive layer.
 

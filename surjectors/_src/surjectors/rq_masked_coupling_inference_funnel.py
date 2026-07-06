@@ -1,7 +1,6 @@
 import distrax
 from chex import Array
 
-# pylint: disable=too-many-arguments, arguments-renamed
 from surjectors._src.surjectors.masked_coupling_inference_funnel import (
   MaskedCouplingInferenceFunnel,
 )

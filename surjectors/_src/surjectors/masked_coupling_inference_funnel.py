@@ -7,7 +7,6 @@ from surjectors._src.bijectors.masked_coupling import MaskedCoupling
 from surjectors._src.surjectors.surjector import Surjector
 
 
-# pylint: disable=too-many-function-args
 class MaskedCouplingInferenceFunnel(Surjector):
   """A masked coupling inference funnel.
 

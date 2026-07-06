@@ -6,7 +6,6 @@ from surjectors._src.conditioners.nn.made import MADE
 from surjectors.util import unstack
 
 
-# pylint: disable=too-many-arguments,arguments-renamed
 class AffineMaskedAutoregressive(MaskedAutoregressive):
   """An affine masked autoregressive layer.
 

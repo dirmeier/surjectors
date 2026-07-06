@@ -7,7 +7,6 @@ from surjectors._src.bijectors.masked_coupling import MaskedCoupling
 from surjectors._src.distributions.transformed_distribution import Array
 
 
-# pylint: disable=too-many-arguments, arguments-renamed,too-many-ancestors
 class AffineMaskedCoupling(MaskedCoupling):
   """An affine masked coupling layer.
 

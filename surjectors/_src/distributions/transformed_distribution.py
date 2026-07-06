@@ -56,7 +56,7 @@ class TransformedDistribution:
     """
     return getattr(self, method)(**kwargs)
 
-  def log_prob(self, y: Array, x: Array = None):
+  def log_prob(self, y: Array, x: Array | None = None):
     """Calculate the log probability of an event conditional on another.
 
     Args:
@@ -69,7 +69,7 @@ class TransformedDistribution:
     _, lp = self.inverse_and_log_prob(y, x)
     return lp
 
-  def inverse_and_log_prob(self, y: Array, x: Array = None):
+  def inverse_and_log_prob(self, y: Array, x: Array | None = None):
     """Compute the inverse transformation and its log probability.
 
     Args:
@@ -92,7 +92,7 @@ class TransformedDistribution:
     lp = lp_z + lc
     return z, lp
 
-  def sample(self, sample_shape=(), x: Array = None):
+  def sample(self, sample_shape=(), x: Array | None = None):
     """Sample an event.
 
     Args:
@@ -106,7 +106,7 @@ class TransformedDistribution:
     y, _ = self.sample_and_log_prob(sample_shape, x)
     return y
 
-  def sample_and_log_prob(self, sample_shape=(), x: Array = None):
+  def sample_and_log_prob(self, sample_shape=(), x: Array | None = None):
     """Sample an event and compute its log probability.
 
     Args:

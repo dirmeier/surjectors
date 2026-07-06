@@ -2,7 +2,6 @@ from surjectors._src._transform import Transform
 from surjectors._src.surjectors.surjector import Surjector
 
 
-# type: ignore[B009]
 class Chain(Surjector):
   """Chain of normalizing flows.
 
