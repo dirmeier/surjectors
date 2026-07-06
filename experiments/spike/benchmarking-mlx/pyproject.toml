@@ -16,3 +16,9 @@ surjectors = { path = "../../../", editable = true }
 [tool.ruff]
 line-length = 80
 indent-width = 2
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "scipy>=1.18.0",
+]
