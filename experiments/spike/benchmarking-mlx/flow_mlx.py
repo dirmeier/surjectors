@@ -102,3 +102,40 @@ class MADE(nn.Module):
       if i < len(self.layers) - 1:
         h = nn.relu(h)
     return h.reshape(y.shape[0], self.input_size, self.n_params)
+
+
+class MAF(nn.Module):
+  """Masked autoregressive flow over a diagonal-Normal base.
+
+  Density-estimation direction only: ``log_prob`` maps data y to latent z
+  via a single parallel MADE pass per layer, with a reversing permutation
+  between layers.
+
+  Args:
+    dim: event dimensionality.
+    hidden_sizes: MADE hidden-layer sizes.
+    n_layers: number of MAF layers.
+  """
+
+  def __init__(self, dim, hidden_sizes, n_layers):
+    super().__init__()
+    self.dim = dim
+    self.n_layers = n_layers
+    self.base = DiagNormal(dim)
+    self.mades = [
+      MADE(dim, hidden_sizes, n_params=2) for _ in range(n_layers)
+    ]
+
+  def log_prob(self, y):
+    """Log density of the data under the flow."""
+    z = y
+    ldj = mx.zeros((y.shape[0],))
+    for i, made in enumerate(self.mades):
+      params = made(z)
+      mean = params[..., 0]
+      log_scale = params[..., 1]
+      z = (z - mean) * mx.exp(-log_scale)
+      ldj = ldj - mx.sum(log_scale, axis=-1)
+      if i < self.n_layers - 1:
+        z = z[:, ::-1]
+    return self.base.log_prob(z) + ldj
