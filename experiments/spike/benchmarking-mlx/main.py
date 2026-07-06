@@ -3,6 +3,8 @@
 Run: uv run python main.py
 """
 
+import csv
+import os
 import statistics
 import time
 from functools import partial
@@ -189,3 +191,53 @@ def benchmark_jax(train, test):
     "init_nll": init_nll,
     "final_nll": final_nll,
   }
+
+
+_COLUMNS = [
+  "framework",
+  "device",
+  "steps_per_sec",
+  "train_wall_s",
+  "warmup_s",
+  "init_nll",
+  "final_nll",
+]
+
+
+def _write_results(rows, out_dir="results"):
+  os.makedirs(out_dir, exist_ok=True)
+  with open(os.path.join(out_dir, "results.csv"), "w", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=_COLUMNS)
+    writer.writeheader()
+    writer.writerows(rows)
+
+  lines = ["| " + " | ".join(_COLUMNS) + " |"]
+  lines.append("| " + " | ".join("---" for _ in _COLUMNS) + " |")
+  for row in rows:
+    cells = []
+    for col in _COLUMNS:
+      v = row[col]
+      cells.append(f"{v:.4g}" if isinstance(v, float) else str(v))
+    lines.append("| " + " | ".join(cells) + " |")
+  table = "\n".join(lines) + "\n"
+  with open(os.path.join(out_dir, "table.md"), "w") as f:
+    f.write(table)
+  return table
+
+
+def main():
+  train, test = load_two_moons(N_DATA, NOISE, SEED)
+  rows = [
+    benchmark_jax(train, test),
+    benchmark_mlx(mx.cpu, train, test),
+    benchmark_mlx(mx.gpu, train, test),
+  ]
+  for row in rows:
+    assert np.isfinite(row["final_nll"]), row
+    assert row["final_nll"] < row["init_nll"], row
+  table = _write_results(rows)
+  print(table)
+
+
+if __name__ == "__main__":
+  main()
