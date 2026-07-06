@@ -6,7 +6,7 @@ from jax import numpy as jnp
 from surjectors._src.bijectors.bijector import Bijector
 
 
-class LULinear(Bijector, hk.Module):
+class LULinear(Bijector, hk.Module):  # type: ignore[metaclass]
   """An bijection based on the LU composition.
 
   Args:

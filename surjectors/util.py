@@ -1,15 +1,20 @@
 """Utility functions."""
 
-from collections import namedtuple
+from typing import NamedTuple
 
 import numpy as np
-from jax import lax
+from jax import Array, lax
 from jax import numpy as jnp
 from jax import random as jr
 
 __all__ = ["make_alternating_binary_mask", "as_batch_iterator", "unstack"]
 
-named_dataset = namedtuple("named_dataset", "y x")
+
+class named_dataset(NamedTuple):
+  """A labelled dataset: responses ``y`` and optional conditioning ``x``."""
+
+  y: Array
+  x: Array | None = None
 
 
 class _DataLoader:
@@ -47,7 +52,7 @@ def make_alternating_binary_mask(n_dim: int, even_idx_as_true: bool = False):
 
 
 def as_batch_iterator(
-  rng_key: jr.PRNGKey, data: named_dataset, batch_size: int, shuffle=True
+  rng_key: Array, data: named_dataset, batch_size: int, shuffle: bool = True
 ) -> _DataLoader:
   """Create a batch iterator for a data set.
 

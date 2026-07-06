@@ -7,7 +7,7 @@ from surjectors._src.bijectors.lu_linear import LULinear
 from surjectors._src.surjectors.surjector import Surjector
 
 
-class MLPInferenceFunnel(Surjector, hk.Module):
+class MLPInferenceFunnel(Surjector, hk.Module):  # type: ignore[metaclass]
   """A multilayer perceptron inference funnel.
 
   Args:
