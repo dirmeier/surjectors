@@ -1,10 +1,10 @@
 import chex
-import distrax
 import haiku as hk
 from distrax import Distribution
 from jax import Array
 from tensorflow_probability.substrates.jax import distributions as tfd
 
+from surjectors._src.bijectors.wrap import as_transform
 from surjectors._src.surjectors.surjector import Surjector
 
 
@@ -84,10 +84,9 @@ class TransformedDistribution:
       chex.assert_equal_rank([y, x])
       chex.assert_axis_dimension(y, 0, x.shape[0])
 
-    if isinstance(self.transform, distrax.Bijector):
-      z, lc = self.transform.inverse_and_log_det(y)
-    else:
-      z, lc = self.transform.inverse_and_likelihood_contribution(y, x=x)
+    z, lc = as_transform(self.transform).inverse_and_likelihood_contribution(
+      y, x=x
+    )
     lp_z = self.base_distribution.log_prob(z)
     lp = lp_z + lc
     return z, lp
@@ -134,6 +133,8 @@ class TransformedDistribution:
         sample_shape=sample_shape,
       )
 
-    y, fldj = self.transform.forward_and_likelihood_contribution(z, x=x)
+    y, fldj = as_transform(self.transform).forward_and_likelihood_contribution(
+      z, x=x
+    )
     lp = lp_z - fldj
     return y, lp
