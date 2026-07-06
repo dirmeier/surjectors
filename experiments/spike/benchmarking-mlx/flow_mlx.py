@@ -49,8 +49,7 @@ class MADE(nn.Module):
     masks = _autoregressive_masks(input_size, hidden_sizes, n_params)
     sizes = [input_size, *hidden_sizes, input_size * n_params]
     self.layers = [
-      MaskedLinear(sizes[i], sizes[i + 1], masks[i])
-      for i in range(len(masks))
+      MaskedLinear(sizes[i], sizes[i + 1], masks[i]) for i in range(len(masks))
     ]
 
   def __call__(self, y):

@@ -169,7 +169,7 @@ def _write_results(rows, out_dir="results"):
     writer.writeheader()
     writer.writerows(rows)
 
-  fmt = lambda v: f"{v:.4g}" if isinstance(v, float) else str(v)
+  fmt = lambda v: f"{v:.4g}" if isinstance(v, float) else str(v)  # noqa: E731
   lines = ["| " + " | ".join(cols) + " |", "|" + " --- |" * len(cols)]
   lines += ["| " + " | ".join(fmt(row[c]) for c in cols) + " |" for row in rows]
   table = "\n".join(lines) + "\n"
