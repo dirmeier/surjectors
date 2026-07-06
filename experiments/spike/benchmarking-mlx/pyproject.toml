@@ -1,0 +1,18 @@
+[project]
+name = "benchmarking-mlx"
+version = "0.0.0"
+description = "Spike: benchmark MLX vs JAX/surjectors for MAF density estimation"
+requires-python = ">=3.12"
+dependencies = [
+    "mlx>=0.20",
+    "scikit-learn>=1.5",
+    "numpy>=1.26",
+    "surjectors",
+]
+
+[tool.uv.sources]
+surjectors = { path = "../../../", editable = true }
+
+[tool.ruff]
+line-length = 80
+indent-width = 2
