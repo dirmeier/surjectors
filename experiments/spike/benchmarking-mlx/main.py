@@ -12,7 +12,12 @@ import mlx.nn as nn
 import mlx.optimizers as optim
 import numpy as np
 
+import jax
+import optax
+from jax import numpy as jnp, random as jr
+
 from data import iter_batches, load_two_moons
+from flow_jax import make_flow
 from flow_mlx import MAF
 
 DIM = 2
@@ -97,6 +102,87 @@ def benchmark_mlx(device, train, test):
   return {
     "framework": "mlx",
     "device": "gpu" if device == mx.gpu else "cpu",
+    "steps_per_sec": N_STEPS / train_wall_s,
+    "train_wall_s": train_wall_s,
+    "warmup_s": warmup_s,
+    "init_nll": init_nll,
+    "final_nll": final_nll,
+  }
+
+
+def _jax_nll(flow, params, data):
+  lp = flow.apply(params, None, method="log_prob", y=jnp.asarray(data))
+  return float(-jnp.mean(lp))
+
+
+def benchmark_jax(train, test):
+  """Train the surjectors MAF on CPU and return a metrics dict.
+
+  Args:
+    train: standardized training array.
+    test: standardized test array.
+
+  Returns:
+    dict with the same keys as benchmark_mlx (device is always "cpu").
+  """
+  jax.config.update("jax_platform_name", "cpu")
+  flow = make_flow(DIM, HIDDEN_SIZES, N_LAYERS)
+
+  def build():
+    params = flow.init(
+      jr.key(SEED), method="log_prob", y=jnp.asarray(train[:BATCH_SIZE])
+    )
+    optimizer = optax.adam(LR)
+    opt_state = optimizer.init(params)
+
+    @jax.jit
+    def step(params, opt_state, y):
+      def loss_fn(p):
+        return -jnp.mean(flow.apply(p, None, method="log_prob", y=y))
+
+      loss, grads = jax.value_and_grad(loss_fn)(params)
+      updates, opt_state = optimizer.update(grads, opt_state, params)
+      return loss, optax.apply_updates(params, updates), opt_state
+
+    return params, opt_state, step
+
+  params, opt_state, step = build()
+  init_nll = _jax_nll(flow, params, test)
+  batches = iter_batches(train, BATCH_SIZE, 1 + N_WARMUP + N_STEPS, SEED)
+
+  t0 = time.perf_counter()
+  loss, params, opt_state = step(params, opt_state, jnp.asarray(next(batches)))
+  loss.block_until_ready()
+  warmup_s = time.perf_counter() - t0
+  for _ in range(N_WARMUP):
+    loss, params, opt_state = step(
+      params, opt_state, jnp.asarray(next(batches))
+    )
+  loss.block_until_ready()
+
+  wall_times = []
+  final_nll = init_nll
+  for r in range(N_REPEATS):
+    params, opt_state, step = build()
+    rb = iter_batches(train, BATCH_SIZE, N_WARMUP + N_STEPS, SEED + r)
+    for _ in range(N_WARMUP):
+      loss, params, opt_state = step(
+        params, opt_state, jnp.asarray(next(rb))
+      )
+    loss.block_until_ready()
+    t0 = time.perf_counter()
+    for _ in range(N_STEPS):
+      loss, params, opt_state = step(
+        params, opt_state, jnp.asarray(next(rb))
+      )
+    loss.block_until_ready()
+    wall_times.append(time.perf_counter() - t0)
+    final_nll = _jax_nll(flow, params, test)
+
+  train_wall_s = statistics.median(wall_times)
+  return {
+    "framework": "jax",
+    "device": "cpu",
     "steps_per_sec": N_STEPS / train_wall_s,
     "train_wall_s": train_wall_s,
     "warmup_s": warmup_s,
