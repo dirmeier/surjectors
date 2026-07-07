@@ -40,22 +40,6 @@ class TransformedDistribution:
     self.base_distribution = base_distribution
     self.transform = as_transform(transform)
 
-  def __call__(self, method, **kwargs):
-    """Call the TransformedDistribution object.
-
-    Depending on "method", computes log-probability of an event or samples
-    from the distribution.
-
-    Args:
-        method: either "sample" or "log_prob"
-        **kwargs: several keyword arguments that are dispatched to
-            whatever method is called.
-
-    Returns:
-        returns whatever 'method' returns
-    """
-    return getattr(self, method)(**kwargs)
-
   def log_prob(self, y: Array, x: Array | None = None):
     """Calculate the log probability of an event conditional on another.
 
