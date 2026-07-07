@@ -4,10 +4,10 @@ import haiku as hk
 from jax import numpy as jnp
 
 from surjectors._src.bijectors.masked_coupling import MaskedCoupling
-from surjectors._src.surjectors.surjector import Surjector
+from surjectors._src.surjectors.funnel import Funnel
 
 
-class MaskedCouplingInferenceFunnel(Surjector):
+class MaskedCouplingInferenceFunnel(Funnel):
   """A masked coupling inference funnel.
 
   The MaskedCouplingInferenceFunnel is a coupling funnel,
@@ -63,7 +63,7 @@ class MaskedCouplingInferenceFunnel(Surjector):
     conditioner: Callable,
     bijector_fn: Callable,
   ):
-    self.n_keep = n_keep
+    super().__init__(n_keep)
     self.decoder = decoder
     self.conditioner = conditioner
     self.bijector_fn = bijector_fn
@@ -83,16 +83,13 @@ class MaskedCouplingInferenceFunnel(Surjector):
     )
     # TODO(simon): this should be relegated to the base class:
     #  MaskedCouplingInferenceFunnel (see issue #14 on GitHub)
-    z_condition = z = faux[:, : self.n_keep]
-    if x is not None:
-      z_condition = jnp.concatenate([z, x], axis=-1)
+    z = faux[:, : self.n_keep]
+    z_condition = self._condition(z, x)
     lc = self.decoder(z_condition).log_prob(y[:, self.n_keep :])
     return z, lc + jac_det
 
   def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
-    z_condition = z
-    if x is not None:
-      z_condition = jnp.concatenate([z, x], axis=-1)
+    z_condition = self._condition(z, x)
     y_minus, jac_det = self.decoder(z_condition).sample_and_log_prob(
       seed=hk.next_rng_key()
     )

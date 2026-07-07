@@ -5,10 +5,10 @@ from jax import numpy as jnp
 
 from surjectors._src.bijectors.masked_autoregressive import MaskedAutoregressive
 from surjectors._src.conditioners.nn.made import MADE
-from surjectors._src.surjectors.surjector import Surjector
+from surjectors._src.surjectors.funnel import Funnel
 
 
-class MaskedAutoregressiveInferenceFunnel(Surjector):
+class MaskedAutoregressiveInferenceFunnel(Funnel):
   """A masked autoregressive funnel layer.
 
   The MaskedAutoregressiveInferenceFunnel is an autoregressive funnel,
@@ -66,7 +66,7 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
     conditioner: MADE,
     bijector_fn: Callable,
   ):
-    self.n_keep = n_keep
+    super().__init__(n_keep)
     self.decoder = decoder
     self.conditioner = conditioner
     self.bijector_fn = bijector_fn
@@ -77,29 +77,21 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
   def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
     y_plus, y_minus = y[..., : self.n_keep], y[..., self.n_keep :]
 
-    y_cond = y_minus
-    if x is not None:
-      y_cond = jnp.concatenate([y_cond, x], axis=-1)
+    y_cond = self._condition(y_minus, x)
     z, jac_det = self._inner_bijector().inverse_and_log_det(y_plus, y_cond)
 
-    z_condition = z
-    if x is not None:
-      z_condition = jnp.concatenate([z, x], axis=-1)
+    z_condition = self._condition(z, x)
     lc = self.decoder(z_condition).log_prob(y_minus)
 
     return z, lc + jac_det
 
   def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
-    z_condition = z
-    if x is not None:
-      z_condition = jnp.concatenate([z, x], axis=-1)
+    z_condition = self._condition(z, x)
     y_minus, jac_det = self.decoder(z_condition).sample_and_log_prob(
       seed=hk.next_rng_key()
     )
 
-    y_cond = y_minus
-    if x is not None:
-      y_cond = jnp.concatenate([y_cond, x], axis=-1)
+    y_cond = self._condition(y_minus, x)
     # TODO(simon): need to sort the indexes correctly (?)
     # TODO(simon): remote the conditioning here?
     y_plus, lc = self._inner_bijector().forward_and_log_det(z, y_cond)
