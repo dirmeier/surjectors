@@ -395,14 +395,6 @@ plt.show()
 
 ![](figures/introduction_01.png)
 
-### References
-
-[1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood with dimensionality reduction". Workshop on Bayesian Deep Learning, Advances in Neural Information Processing Systems, 2021.
-
-[2] Durkan, Conor, et al. "Neural Spline Flows". Advances in Neural Information Processing Systems, 2019.
-
-[3] Papamakarios, George, et al. "Masked Autoregressive Flow for Density Estimation". Advances in Neural Information Processing Systems, 2017.
-
 ---
 
 ## Unconditional and conditional density estimation
@@ -719,12 +711,6 @@ plt.show()
 ```
 
 ![](figures/normalizing_flows_03.png)
-
-### References
-
-[1] Dinh, Laurent, et al. "Density estimation using RealNVP". International Conference on Learning Representations, 2017.
-
-[2] Papamakarios, George, et al. "Masked Autoregressive Flow for Density Estimation". Advances in Neural Information Processing Systems, 2017.
 
 ---
 
@@ -1104,6 +1090,9 @@ df.insert(
 df
 ```
 
-### References
-
-[1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood with dimensionality reduction". Workshop on Bayesian Deep Learning, Advances in Neural Information Processing Systems, 2021.
+| Model | Training density | Test density |
+| --- | --- | --- |
+| Baseline | 2.9739 | 1.5148 |
+| MLP funnel | 10.4925 | 10.4877 |
+| Affine masked coupling funnel | 10.4815 | 10.2442 |
+| RQ masked coupling funnel | 6.8142 | 5.8006 |
