@@ -38,7 +38,7 @@ class TransformedDistribution:
     transform: Surjector,
   ):
     self.base_distribution = base_distribution
-    self.transform = transform
+    self.transform = as_transform(transform)
 
   def __call__(self, method, **kwargs):
     """Call the TransformedDistribution object.
@@ -84,9 +84,7 @@ class TransformedDistribution:
       chex.assert_equal_rank([y, x])
       chex.assert_axis_dimension(y, 0, x.shape[0])
 
-    z, lc = as_transform(self.transform).inverse_and_likelihood_contribution(
-      y, x=x
-    )
+    z, lc = self.transform.inverse_and_likelihood_contribution(y, x=x)
     lp_z = self.base_distribution.log_prob(z)
     lp = lp_z + lc
     return z, lp
@@ -133,8 +131,6 @@ class TransformedDistribution:
         sample_shape=sample_shape,
       )
 
-    y, fldj = as_transform(self.transform).forward_and_likelihood_contribution(
-      z, x=x
-    )
+    y, fldj = self.transform.forward_and_likelihood_contribution(z, x=x)
     lp = lp_z - fldj
     return y, lp
