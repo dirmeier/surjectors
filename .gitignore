@@ -157,5 +157,3 @@ cython_debug/
 poetry.lock
 
 .DS_Store
-
-.superpowers/

@@ -62,9 +62,12 @@ params = flow.init(jr.PRNGKey(2), x)
 lp = flow.apply(params, x)
 ```
 
-Because everything runs inside `hk.transform`, a `TransformedDistribution` is
-called through a single entry point: pass `method="log_prob"`, `method="sample"`,
-etc. to `apply`/`init` to select which method to run. See [`EXAMPLES.md`](EXAMPLES.md).
+Everything runs inside `hk.transform`, so a `TransformedDistribution` method
+can be called directly, as above, when only one method is needed. To expose
+several methods (e.g. both `log_prob` and `sample`) from the same set of
+parameters, use `surjectors.util.as_model`, which wraps `hk.multi_transform`
+and returns each named method as a typed callable on `model.apply`. See
+[`EXAMPLES.md`](EXAMPLES.md).
 
 ## Installation
 
