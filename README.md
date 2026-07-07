@@ -1,17 +1,14 @@
 # surjectors
 
 [![ci](https://github.com/dirmeier/surjectors/actions/workflows/ci.yaml/badge.svg)](https://github.com/dirmeier/surjectors/actions/workflows/ci.yaml)
-[![version](https://img.shields.io/pypi/v/surjectors.svg?colorB=black&style=flat)](https://pypi.org/project/surjectors/)
-[![doi](https://joss.theoj.org/papers/10.21105/joss.06188/status.svg)](https://doi.org/10.21105/joss.06188)
+[![codecov](https://codecov.io/gh/dirmeier/surjectors/graph/badge.svg?token=QVF9MDV0JM)](https://codecov.io/gh/dirmeier/surjectors)
 
 > Surjection layers for density estimation with normalizing flows
 
-## About
-
 Surjectors is a light-weight library for density estimation using inference and
 generative surjective normalizing flows, i.e., flows that can *reduce* or
-*increase* dimensionality while retaining exact-likelihood training. It builds
-on Distrax and Haiku and is fully compatible with both.
+*increase* dimensionality while retaining exact-likelihood training. 
+For completeness, we also provide implementations of conventional NF-based bijections.
 
 Surjectors makes use of
 
@@ -20,33 +17,14 @@ Surjectors makes use of
 - [Optax](https://github.com/deepmind/optax) for gradient-based optimization,
 - [JAX](https://github.com/google/jax) for autodiff and XLA computation.
 
-### Why surjections?
 
-A conventional normalizing flow is a chain of *bijections*: every layer is
+**Why surjections?** A conventional normalizing flow is a chain of *bijections*: every layer is
 invertible and dimensionality-preserving, and the change of variables uses the
-Jacobian log-determinant. A **surjection** relaxes invertibility — it may map to
+Jacobian log-determinant. A *surjection* relaxes invertibility — it may map to
 a lower- (inference) or higher-dimensional (generative) space — and replaces the
 log-determinant with an exact *likelihood contribution*. This lets a flow reduce
 dimensionality as part of the model while still being trained by maximum
-likelihood. See [`EXAMPLES.md`](EXAMPLES.md) for a worked comparison against a
-bijective baseline.
-
-## Installation
-
-Make sure to have a working `JAX` installation. Depending on whether you want to
-use CPU/GPU/TPU, follow [these instructions](https://github.com/google/jax#installation).
-
-To install from PyPI, call:
-
-```bash
-pip install surjectors
-```
-
-To install the latest GitHub `<RELEASE>`:
-
-```bash
-pip install git+https://github.com/dirmeier/surjectors@<RELEASE>
-```
+likelihood.
 
 ## Quickstart
 
@@ -87,6 +65,23 @@ lp = flow.apply(params, x)
 Because everything runs inside `hk.transform`, a `TransformedDistribution` is
 called through a single entry point: pass `method="log_prob"`, `method="sample"`,
 etc. to `apply`/`init` to select which method to run. See [`EXAMPLES.md`](EXAMPLES.md).
+
+## Installation
+
+Make sure to have a working `JAX` installation. Depending on whether you want to
+use CPU/GPU/TPU, follow [these instructions](https://github.com/google/jax#installation).
+
+To install from PyPI, call:
+
+```bash
+pip install surjectors
+```
+
+To install the latest GitHub `<RELEASE>`:
+
+```bash
+pip install git+https://github.com/dirmeier/surjectors@<RELEASE>
+```
 
 ## API reference
 
@@ -180,13 +175,13 @@ In order to contribute:
 The project uses `uv` for everything (there is no `Makefile`):
 
 ```bash
-uv sync --all-groups                                   # install
-uv run pytest                                          # run tests
-uv run ruff check surjectors examples                  # lint
-uv run ruff check --fix surjectors examples \
-  && uv run ruff format surjectors examples            # auto-fix + format
-uv run mypy surjectors                                 # type-check
-uv run pre-commit run --all-files                      # all pre-commit hooks
+uv sync --all-groups                     
+uv run pytest                            
+uv run ruff check surjectors examples    
+uv run ruff check --fix surjectors examples
+uv run ruff format surjectors examples    
+uv run mypy surjectors examples         
+uv run pre-commit run --all-files       
 ```
 
 ## Citing Surjectors
@@ -206,7 +201,3 @@ If you find our work relevant to your research, please consider citing:
     doi = {10.21105/joss.06188}
 }
 ```
-
-## Author
-
-Simon Dirmeier <a href="mailto:simd23 @ pm me">simd23 @ pm me</a>

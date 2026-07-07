@@ -15,7 +15,7 @@ Worked examples for `surjectors`, adapted from the project tutorials. Each is a 
 This introductory notebook illustrates the usage of the basic functionality of `Surjectors` such as
 
 - using [Haiku](https://github.com/google-deepmind/dm-haiku), [Distrax](https://github.com/google-deepmind/distrax) and [Optax](https://github.com/google-deepmind/optax),
-- defining transformed distributions, 
+- defining transformed distributions,
 - and training a normalizing flow.
 
 At its core, `Surjector` uses Haiku to compose functions with trainable parameters, such as neural networks, and Distrax to compute probability densities and sample random variables. Hence using `Surjectors` also requires some knowledge of these two.
@@ -39,7 +39,11 @@ import matplotlib.pyplot as plt
 
 from surjectors import Chain, MaskedCoupling, Slice, TransformedDistribution
 from surjectors.nn import make_mlp
-from surjectors.util import as_batch_iterator, make_alternating_binary_mask
+from surjectors.util import (
+    as_batch_iterator,
+    as_model,
+    make_alternating_binary_mask,
+)
 ```
 
 ### How to construct a Haiku module
@@ -48,7 +52,7 @@ We begin by demonstrating how to construct a normalizing flow using Haiku module
 
 ```python
 def make_flow(n_dimensions):
-    def flow(**kwargs):
+    def build_td():
         def decoder_fn(n_dim):
             def _fn(z):
                 params = make_mlp([4, n_dim * 2])(z)
@@ -67,17 +71,14 @@ def make_flow(n_dimensions):
             ),
             reinterpreted_batch_ndims=1,
         )
-        pushforward = TransformedDistribution(base_distribution, transform)
-        return pushforward(**kwargs)
+        return TransformedDistribution(base_distribution, transform)
 
-    td = hk.transform(flow)
-    return td
+    return as_model(build_td, methods=("log_prob", "sample"))
 ```
 
 This example uses a `Slice` surjector to reduce the dimensionality of some data by a factor of two: ` Slice(n_dimensions // 2, decoder_fn(n_dimensions // 2))`.
 
-Constructing a Haiku module needs to be done within a `hk.transform` block. This can either be done by providing a function like here and an object. In our case we are using `hk.transform` on `pushforward(**kwargs)` which calls
-the `__call__` method of `TransformedDistribution`. Since we are generally interested to use *all* functions of a `TransformedDistribution`, e.g., `sample` and `log_prob`, the `__call__` function is implemented to dispatch on a method based on what is provided in `**kwargs`. More on that later (see the Section below).
+Constructing a Haiku module needs to be done within a `hk.transform` block. `as_model` does this for us: it takes a zero-argument callable that builds a `TransformedDistribution` and returns an `hk.MultiTransformed` pair whose `apply` exposes each named method (here `log_prob` and `sample`) as its own typed callable. More on that later (see the Section below).
 
 We can now initialize the module. With Haiku, we first initialize trainable parameters using `fn.init`.
 
@@ -88,70 +89,55 @@ n, p = 1000, 10
 y = jr.normal(next(rng_key_seq), (n, p))
 
 fn = make_flow(p)
-params = fn.init(next(rng_key_seq), method="log_prob", y=y)
+params = fn.init(next(rng_key_seq), y=y)
 params
 ```
 
-The only trainable paramaters that are flow defines are the weights of the MLP. The MLP is used to compute the conditional probability density inside the `decoder_fn` function. 
+The only trainable paramaters that are flow defines are the weights of the MLP. The MLP is used to compute the conditional probability density inside the `decoder_fn` function.
 The `Slice` surjector itself doesn't have parameters. We can now test the flow. Let's sample some data first.
 
 ```python
-samples = fn.apply(
-    params, next(rng_key_seq), method="sample", sample_shape=(2,)
-)
+samples = fn.apply.sample(params, next(rng_key_seq), sample_shape=(2,))
 samples
 ```
 
-As mentioned above, in order to dispatch to a method, we just provide a keyword argument. In this case this is `method='sample'`. Computing the log probability of the data can be done by changing the method argument to `log_prob`.
+To call a different method, use the matching attribute on `fn.apply`. Computing the log probability of the data can be done with `fn.apply.log_prob`.
 
 ```python
-fn.apply(params, next(rng_key_seq), method="log_prob", y=samples)
+fn.apply.log_prob(params, next(rng_key_seq), y=samples)
 ```
 
 ### Working with Haiku modules
 
-Haiku's `hk.transform` transforms a function or object into a pure function `fn` that can be used with `jax.vmap` or `jax.pmap` and which can be called using `fn.apply`. When calling `fn.apply` the `__call__` method of the original object is called. Unfortunately, this means that there is only one entry point to an object (i.e., `__call__`) and there is (afaict) no direct way to call member functions of a class. As a remedy, all classes that `Surjector` exposes implement a `__call__` that can be used to call all other functions.
-
-What does that mean exactly? Consider again the transformed distribution object from above:
+Haiku's `hk.transform` transforms a function or object into a pure function `fn` that can be used with `jax.vmap` or `jax.pmap` and which can be called using `fn.apply`. Plain `hk.transform` only gives you a single entry point, so calling more than one member function of an object (e.g. both `log_prob` and `sample` on a `TransformedDistribution`) needs `hk.multi_transform` instead — it lets a builder function return several named callables that all share the same parameters. `as_model` wraps this for `TransformedDistribution`:
 
 ```
 TransformedDistribution(base_distribution, transform)
 ```
 
-When transforming this object
+`as_model` takes a zero-argument callable that builds this object and the names of the methods to expose:
 
 ```
-fn = hk.transform(lambda x: TransformedDistribution(base_distribution, transform)(y))
+model = as_model(
+    lambda: TransformedDistribution(base_distribution, transform),
+    methods=("log_prob", "sample"),
+)
 ```
 
-and then calling its pure function transformation
+`model` is an `hk.MultiTransformed` pair. Initializing parameters uses the first listed method (`log_prob` here):
 
 ```
-fn.apply(None, None, y)
+params = model.init(rng_key, y=y)
 ```
 
-Haiku calls `TransformedDistribution.__call__(y)`. In order to have access to all other member functions, which in this case are
-
-- `sample`
-- `log_prob`
-- `sample_and_log_prob`
-- `inverse_and_log_prob`
-
-
-we implemented `__call__` with the following signature and method body:
+and each named method is reachable as its own typed callable on `model.apply`:
 
 ```
-def __call__(self, method, **kwargs):       
-    return getattr(self, method)(**kwargs)
+model.apply.log_prob(params, rng_key, y=y)
+model.apply.sample(params, rng_key, sample_shape=(10,))
 ```
 
-This allows dispatching to every member function a class has. Concretely, we would call 
-
-```
-fn.apply(params, rng_key, method="log_prob", y=y)
-```
-
-when we want to call `TransformedDistribution.log_prob(y)`.
+when we want to call `TransformedDistribution.log_prob(y)` or `TransformedDistribution.sample(sample_shape=(10,))` respectively.
 
 **Information of which methods classes implement can be found in the API documentation.**
 
@@ -161,27 +147,31 @@ The `TransformedDistribution` class takes a base distribution and a transformati
 
 ```python
 def make_transform(n_dimensions):
-    def transform(**kwargs):
-        def decoder_fn(n_dim):
-            def fn(z):
-                params = make_mlp([4, n_dim * 2])(z)
-                means, log_scales = jnp.split(params, 2, -1)
-                return distrax.Independent(
-                    distrax.Normal(means, jnp.exp(log_scales)),
-                    reinterpreted_batch_ndims=1,
-                )
+    def decoder_fn(n_dim):
+        def fn(z):
+            params = make_mlp([4, n_dim * 2])(z)
+            means, log_scales = jnp.split(params, 2, -1)
+            return distrax.Independent(
+                distrax.Normal(means, jnp.exp(log_scales)),
+                reinterpreted_batch_ndims=1,
+            )
 
-            return fn
+        return fn
 
+    apply_fns = namedtuple("ApplyFns", ("inverse", "forward"))
+
+    def _model():
         slic = Slice(n_dimensions // 2, decoder_fn(n_dimensions // 2))
-        return slic(**kwargs)
 
-    td = hk.transform(transform)
-    return td
+        def init(y):
+            return slic.inverse(y)
+
+        return init, apply_fns(slic.inverse, slic.forward)
+
+    return hk.multi_transform(_model)
 ```
 
-The transform above defines a simple parameterized transformation and not a pushforward measure (in which we are typically interested in when working with flows).
-Depending on the `method` argument, it reduces the dimensionality of the input or increases it.
+The transform above defines a simple parameterized transformation and not a pushforward measure (in which we are typically interested in when working with flows). Calling `transform.apply.inverse` reduces the dimensionality of the input; calling `transform.apply.forward` increases it.
 
 ```python
 rng_key_seq = hk.PRNGSequence(0)
@@ -190,23 +180,23 @@ n, p = 1000, 10
 y = jr.normal(next(rng_key_seq), (n, p))
 
 transform = make_transform(p)
-params = transform.init(next(rng_key_seq), method="inverse", y=y)
+params = transform.init(next(rng_key_seq), y=y)
 
-z = transform.apply(params, next(rng_key_seq), method="inverse", y=y)
+z = transform.apply.inverse(params, next(rng_key_seq), y=y)
 z.shape
 ```
 
 The *forward* transformation takes as an argument a variable $Z$ from the latent space:
 
 ```python
-y_hat = transform.apply(params, next(rng_key_seq), method="forward", z=z)
+y_hat = transform.apply.forward(params, next(rng_key_seq), z=z)
 y_hat.shape
 ```
 
 When defining a normalizing flow, it assumes that the transformation is the **inverse** mapping, i.e., the mapping from data to latent space. Hence the transform $f$ is defined $f: \mathcal{Y} \rightarrow \mathcal{Z}$ (technically this means that
 `TransformedDistribution` defines the pullback).
 
-With this, we can now define a `TransformedDistribution`. A transformed distribution is defined by 
+With this, we can now define a `TransformedDistribution`. A transformed distribution is defined by
 
 - a base measure `base_distribution`,
 - and a transform `transform`.
@@ -215,7 +205,7 @@ For instance, again as a Haiku module:
 
 ```python
 def make_flow(n_dimensions):
-    def flow(**kwargs):
+    def build_td():
         def decoder_fn(n_dim):
             def fn(z):
                 params = make_mlp([64, 64, n_dim * 2])(z)
@@ -234,11 +224,9 @@ def make_flow(n_dimensions):
             ),
             reinterpreted_batch_ndims=1,
         )
-        pushforward = TransformedDistribution(base_distribution, transform)
-        return pushforward(**kwargs)
+        return TransformedDistribution(base_distribution, transform)
 
-    td = hk.transform(flow)
-    return td
+    return as_model(build_td, methods=("log_prob", "sample"))
 ```
 
 Initialize and apply the flow:
@@ -250,12 +238,10 @@ n, p = 1000, 100
 y = jr.normal(next(rng_key_seq), (n, p))
 
 fn = make_flow(p)
-params = fn.init(next(rng_key_seq), method="log_prob", y=y)
+params = fn.init(next(rng_key_seq), y=y)
 
-lps = fn.apply(params, next(rng_key_seq), method="log_prob", y=y)
-samples = fn.apply(
-    params, next(rng_key_seq), method="sample", sample_shape=(10,)
-)
+lps = fn.apply.log_prob(params, next(rng_key_seq), y=y)
+samples = fn.apply.sample(params, next(rng_key_seq), sample_shape=(10,))
 ```
 
 ### Training a normalizing flow
@@ -270,7 +256,7 @@ def train(rng_key, data, model, n_iter=1000):
 
     # initialize the model
     init_key, rng_key = jr.split(rng_key)
-    params = model.init(init_key, method="log_prob", **train_iter(0))
+    params = model.init(init_key, **train_iter(0))
 
     # create an optimizer
     optimizer = optax.adam(1e-4)
@@ -280,7 +266,7 @@ def train(rng_key, data, model, n_iter=1000):
     # gradient step
     def step(params, state, **batch):
         def loss_fn(params):
-            lp = model.apply(params, None, method="log_prob", **batch)
+            lp = model.apply.log_prob(params, None, **batch)
             return -jnp.mean(lp)
 
         loss, grads = jax.value_and_grad(loss_fn)(params)
@@ -325,7 +311,7 @@ We use a masked coupling bijector with affine transformations. Specifically, we 
 
 ```python
 def make_flow(n_dimensions):
-    def flow(**kwargs):
+    def build_td():
         def bijector_fn(params):
             means, log_scales = jnp.split(params, 2, -1)
             return distrax.ScalarAffine(means, jnp.exp(log_scales))
@@ -344,12 +330,9 @@ def make_flow(n_dimensions):
             distrax.Normal(jnp.zeros(n_dimensions), jnp.ones(n_dimensions)),
             reinterpreted_batch_ndims=1,
         )
-        pushforward = TransformedDistribution(base_distribution, transform)
+        return TransformedDistribution(base_distribution, transform)
 
-        return pushforward(**kwargs)
-
-    td = hk.transform(flow)
-    return td
+    return as_model(build_td, methods=("log_prob", "sample"))
 ```
 
 To train the flow we need to provide a data argument for `as_batch_iterator` which has to be a named tuple. If the tuple has one element, called `y`, an unconditional flow is trained. If a tuple with two elements, called `y` and `x`, is provided, a conditional flow is trained.
@@ -363,9 +346,7 @@ params, losses = train(next(rng_key_seq), data, fn)
 That's it. Let's draw some sampels.
 
 ```python
-samples = fn.apply(
-    params, next(rng_key_seq), method="sample", sample_shape=(1000,)
-)
+samples = fn.apply.sample(params, next(rng_key_seq), sample_shape=(1000,))
 ```
 
 ```python
@@ -431,6 +412,7 @@ from surjectors import (
 from surjectors.nn import MADE, make_mlp
 from surjectors.util import (
     as_batch_iterator,
+    as_model,
     make_alternating_binary_mask,
     unstack,
 )
@@ -446,7 +428,7 @@ def train(rng_key, data, model, n_iter=1000):
 
     # initialize the model
     init_key, rng_key = jr.split(rng_key)
-    params = model.init(init_key, method="log_prob", **train_iter(0))
+    params = model.init(init_key, **train_iter(0))
 
     # create an optimizer
     optimizer = optax.adam(1e-4)
@@ -456,7 +438,7 @@ def train(rng_key, data, model, n_iter=1000):
     # gradient step
     def step(params, state, **batch):
         def loss_fn(params):
-            lp = model.apply(params, None, method="log_prob", **batch)
+            lp = model.apply.log_prob(params, None, **batch)
             return -jnp.mean(lp)
 
         loss, grads = jax.value_and_grad(loss_fn)(params)
@@ -507,7 +489,7 @@ The inner bijector can be anything, for instance, an RQ-NSF or an affine transfo
 
 ```python
 def make_flow(n_dimensions):
-    def flow(**kwargs):
+    def build_td():
         def bijector_fn(params):
             means, log_scales = unstack(params, -1)
             return distrax.Inverse(
@@ -530,12 +512,9 @@ def make_flow(n_dimensions):
             distrax.Normal(jnp.zeros(n_dimensions), jnp.ones(n_dimensions)),
             reinterpreted_batch_ndims=1,
         )
-        pushforward = TransformedDistribution(base_distribution, transform)
+        return TransformedDistribution(base_distribution, transform)
 
-        return pushforward(**kwargs)
-
-    td = hk.transform(flow)
-    return td
+    return as_model(build_td, methods=("log_prob", "sample"))
 ```
 
 This defines the entire flow. We can now train it and sample some data from the trained model.
@@ -548,9 +527,7 @@ params, losses = train(next(rng_key_seq), data, fn)
 ```
 
 ```python
-samples = fn.apply(
-    params, next(rng_key_seq), method="sample", sample_shape=(10000,)
-)
+samples = fn.apply.sample(params, next(rng_key_seq), sample_shape=(10000,))
 ```
 
 ```python
@@ -634,7 +611,7 @@ any MLP will do. One disadvantage is that it is generally a bit less flexible.
 
 ```python
 def make_flow(n_dimensions):
-    def flow(**kwargs):
+    def build_td():
         def bijector_fn(params):
             means, log_scales = jnp.split(params, 2, -1)
             return distrax.Inverse(
@@ -655,12 +632,9 @@ def make_flow(n_dimensions):
             distrax.Normal(jnp.zeros(n_dimensions), jnp.ones(n_dimensions)),
             reinterpreted_batch_ndims=1,
         )
-        pushforward = TransformedDistribution(base_distribution, transform)
+        return TransformedDistribution(base_distribution, transform)
 
-        return pushforward(**kwargs)
-
-    td = hk.transform(flow)
-    return td
+    return as_model(build_td, methods=("log_prob", "sample"))
 ```
 
 When training a conditional model, the provided **data set needs to contain the conditioning variable** (duh!). Conditioning variables always need to be labelled *x* while modelled variables are always labeled *y*. Apart from this, there
@@ -676,8 +650,8 @@ params, losses = train(next(rng_key_seq), data, fn)
 Let's sample only data for which the label is 1, i.e., the upward looking moon of the two moons data set.
 
 ```python
-samples = fn.apply(
-    params, next(rng_key_seq), method="sample", x=jnp.ones((10000, 1))
+samples = fn.apply.sample(
+    params, next(rng_key_seq), x=jnp.ones((10000, 1))
 )
 ```
 
@@ -716,7 +690,7 @@ plt.show()
 
 ## Dimensionality reduction with surjections
 
-Surjective normalizing flows use dimensionality-reducing transformations instead of dimensionality-preserving bijective ones. 
+Surjective normalizing flows use dimensionality-reducing transformations instead of dimensionality-preserving bijective ones.
 Below we implement several surjective normalizing for a density estimation problem and compare them to a conventional bijective flow.
 
 ](https://colab.research.google.com/github/dirmeier/surjectors/blob/main/docs/notebooks/dimension_reduction.ipynb)
@@ -746,6 +720,7 @@ from surjectors import (
 from surjectors.nn import make_mlp
 from surjectors.util import (
     as_batch_iterator,
+    as_model,
     make_alternating_binary_mask,
 )
 ```
@@ -760,7 +735,7 @@ def train(rng_key, data, model, n_iter=1000):
 
     # initialize the model
     init_key, rng_key = jr.split(rng_key)
-    params = model.init(init_key, method="log_prob", **train_iter(0))
+    params = model.init(init_key, **train_iter(0))
 
     # create an optimizer
     optimizer = optax.adam(1e-4)
@@ -770,7 +745,7 @@ def train(rng_key, data, model, n_iter=1000):
     # gradient step
     def step(params, state, **batch):
         def loss_fn(params):
-            lp = model.apply(params, None, method="log_prob", **batch)
+            lp = model.apply.log_prob(params, None, **batch)
             return -jnp.mean(lp)
 
         loss, grads = jax.value_and_grad(loss_fn)(params)
@@ -837,7 +812,7 @@ We create a baseine that uses five masked coupling flows.
 
 ```python
 def make_baseline(n_dimensions):
-    def flow(**kwargs):
+    def build_td():
         def bijector_fn(params):
             return distrax.RationalQuadraticSpline(
                 params, range_min=range_min, range_max=range_max
@@ -857,12 +832,9 @@ def make_baseline(n_dimensions):
             distrax.Normal(jnp.zeros(n_dimensions), jnp.ones(n_dimensions)),
             reinterpreted_batch_ndims=1,
         )
-        pushforward = TransformedDistribution(base_distribution, transform)
+        return TransformedDistribution(base_distribution, transform)
 
-        return pushforward(**kwargs)
-
-    td = hk.transform(flow)
-    return td
+    return as_model(build_td, methods=("log_prob", "sample"))
 ```
 
 Training of the baseline is done as follows:
@@ -879,7 +851,7 @@ As a first surjective flow, we implement a `MLPInferenceFunnel`. The surjection 
 
 ```python
 def make_surjective_mlp_funnel(n_dimensions):
-    def flow(**kwargs):
+    def build_td():
         def decoder_fn(n_dim):
             def fn(z):
                 params = make_mlp([32, 32, n_dim * 2])(z)
@@ -907,11 +879,9 @@ def make_surjective_mlp_funnel(n_dimensions):
             distrax.Normal(jnp.zeros(n_dim), jnp.ones(n_dim)),
             reinterpreted_batch_ndims=1,
         )
-        pushforward = TransformedDistribution(base_distribution, transform)
-        return pushforward(**kwargs)
+        return TransformedDistribution(base_distribution, transform)
 
-    td = hk.transform(flow)
-    return td
+    return as_model(build_td, methods=("log_prob", "sample"))
 ```
 
 ```python
@@ -928,7 +898,7 @@ As a second surjector, we implement a `MaskedCouplingInferenceFunnel` with affin
 
 ```python
 def make_surjective_affine_masked_coupling(n_dimensions):
-    def flow(**kwargs):
+    def build_td():
         def bijector_fn(params):
             means, log_scales = jnp.split(params, 2, -1)
             return distrax.ScalarAffine(means, jnp.exp(log_scales))
@@ -967,11 +937,9 @@ def make_surjective_affine_masked_coupling(n_dimensions):
             distrax.Normal(jnp.zeros(n_dim), jnp.ones(n_dim)),
             reinterpreted_batch_ndims=1,
         )
-        pushforward = TransformedDistribution(base_distribution, transform)
-        return pushforward(**kwargs)
+        return TransformedDistribution(base_distribution, transform)
 
-    td = hk.transform(flow)
-    return td
+    return as_model(build_td, methods=("log_prob", "sample"))
 ```
 
 ```python
@@ -990,7 +958,7 @@ Finally, we implement a `MaskedCouplingInferenceFunnel` with a rational quadrati
 
 ```python
 def make_surjective_rq_masked_coupling(n_dimensions):
-    def flow(**kwargs):
+    def build_td():
         def bijector_fn(params):
             return distrax.RationalQuadraticSpline(
                 params, range_min=range_min, range_max=range_max
@@ -1030,11 +998,9 @@ def make_surjective_rq_masked_coupling(n_dimensions):
             distrax.Normal(jnp.zeros(n_dim), jnp.ones(n_dim)),
             reinterpreted_batch_ndims=1,
         )
-        pushforward = TransformedDistribution(base_distribution, transform)
-        return pushforward(**kwargs)
+        return TransformedDistribution(base_distribution, transform)
 
-    td = hk.transform(flow)
-    return td
+    return as_model(build_td, methods=("log_prob", "sample"))
 ```
 
 ```python
@@ -1066,8 +1032,8 @@ param_list = [
 
 lps = []
 for model, params in zip(model_list, param_list):
-    lp_training = model.apply(params, None, method="log_prob", y=y[:n_train])
-    lp_test = model.apply(params, None, method="log_prob", y=y[n_train:])
+    lp_training = model.apply.log_prob(params, None, y=y[:n_train])
+    lp_test = model.apply.log_prob(params, None, y=y[n_train:])
     lp_training = jnp.mean(lp_training)
     lp_test = jnp.mean(lp_test)
     lps.append(np.array([lp_training, lp_test]))
