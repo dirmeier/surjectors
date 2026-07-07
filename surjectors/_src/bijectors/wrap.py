@@ -18,9 +18,13 @@ class _BijectorAdapter(Bijector):
     self._bijector = bijector
 
   def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
+    if x is not None:
+      raise ValueError("a wrapped distrax bijector cannot condition on x")
     return self._bijector.forward_and_log_det(z)
 
   def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
+    if x is not None:
+      raise ValueError("a wrapped distrax bijector cannot condition on x")
     return self._bijector.inverse_and_log_det(y)
 
 
