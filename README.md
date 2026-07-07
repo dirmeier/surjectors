@@ -4,27 +4,62 @@
 [![version](https://img.shields.io/pypi/v/surjectors.svg?colorB=black&style=flat)](https://pypi.org/project/surjectors/)
 [![doi](https://joss.theoj.org/papers/10.21105/joss.06188/status.svg)](https://doi.org/10.21105/joss.06188)
 
+> Surjection layers for density estimation with normalizing flows
+
 ## About
 
-Surjectors is a light-weight library for density estimation using
-inference and generative surjective normalizing flows, i.e., flows can that reduce or increase dimensionality.
+Surjectors is a light-weight library for density estimation using inference and
+generative surjective normalizing flows, i.e., flows that can *reduce* or
+*increase* dimensionality while retaining exact-likelihood training. It builds
+on Distrax and Haiku and is fully compatible with both.
+
 Surjectors makes use of
 
-- [Haiku](https://github.com/deepmind/dm-haiku)`s module system for neural networks,
-- [Distrax](https://github.com/deepmind/distrax) for probability distributions and some base bijectors,
+- [Haiku](https://github.com/deepmind/dm-haiku)'s module system for neural networks,
+- [Distrax](https://github.com/deepmind/distrax) for probability distributions and base bijectors,
 - [Optax](https://github.com/deepmind/optax) for gradient-based optimization,
 - [JAX](https://github.com/google/jax) for autodiff and XLA computation.
 
-## Examples
+### Why surjections?
 
-You can, for instance, construct a simple normalizing flow like this:
+A conventional normalizing flow is a chain of *bijections*: every layer is
+invertible and dimensionality-preserving, and the change of variables uses the
+Jacobian log-determinant. A **surjection** relaxes invertibility — it may map to
+a lower- (inference) or higher-dimensional (generative) space — and replaces the
+log-determinant with an exact *likelihood contribution*. This lets a flow reduce
+dimensionality as part of the model while still being trained by maximum
+likelihood. See [`EXAMPLES.md`](EXAMPLES.md) for a worked comparison against a
+bijective baseline.
+
+## Installation
+
+Make sure to have a working `JAX` installation. Depending on whether you want to
+use CPU/GPU/TPU, follow [these instructions](https://github.com/google/jax#installation).
+
+To install from PyPI, call:
+
+```bash
+pip install surjectors
+```
+
+To install the latest GitHub `<RELEASE>`:
+
+```bash
+pip install git+https://github.com/dirmeier/surjectors@<RELEASE>
+```
+
+## Quickstart
+
+A flow is built from three objects: a **base distribution**, a **transform**
+(a bijector, a surjector, or a `Chain` of them), and a **`TransformedDistribution`**
+that ties them together and exposes `log_prob`, `sample`, `sample_and_log_prob`
+and `inverse_and_log_prob`.
 
 ```python
 import distrax
 import haiku as hk
 from jax import numpy as jnp, random as jr
-from surjectors import Slice, LULinear, Chain
-from surjectors import TransformedDistribution
+from surjectors import Slice, LULinear, Chain, TransformedDistribution
 from surjectors.nn import make_mlp
 
 def decoder_fn(n_dim):
@@ -49,48 +84,110 @@ params = flow.init(jr.PRNGKey(2), x)
 lp = flow.apply(params, x)
 ```
 
-More self-contained examples can be found in [examples](https://github.com/dirmeier/surjectors/tree/main/examples).
+Because everything runs inside `hk.transform`, a `TransformedDistribution` is
+called through a single entry point: pass `method="log_prob"`, `method="sample"`,
+etc. to `apply`/`init` to select which method to run. See [`EXAMPLES.md`](EXAMPLES.md).
 
-## Documentation
+## API reference
 
-Documentation can be found [here](https://surjectors.readthedocs.io/en/latest/).
+All layers implement `forward_and_likelihood_contribution` /
+`inverse_and_likelihood_contribution`; bijections additionally expose the
+Distrax-compatible `forward_and_log_det` / `inverse_and_log_det`. Import
+everything from the top-level `surjectors` namespace.
 
-## Installation
+### Core
 
-Make sure to have a working `JAX` installation. Depending whether you want to use CPU/GPU/TPU,
-please follow [these instructions](https://github.com/google/jax#installation).
+| Object | Description |
+|--------|-------------|
+| `TransformedDistribution` | A base distribution pushed through a transform; exposes `log_prob`, `sample`, `sample_and_log_prob`, `inverse_and_log_prob`. |
+| `Chain` | Compose several bijectors/surjectors into a single transform. |
 
-To install the package from PyPI, call:
+### Bijective layers (dimensionality-preserving)
 
-```bash
-pip install surjectors
-```
+| Object | Description |
+|--------|-------------|
+| `MaskedAutoregressive` | Masked autoregressive layer with a MADE conditioner and a configurable inner bijector. |
+| `AffineMaskedAutoregressive` | Masked autoregressive layer with an affine inner bijector. |
+| `MaskedCoupling` | RealNVP-style masked coupling layer with a configurable inner bijector. |
+| `AffineMaskedCoupling` | Masked coupling with an affine inner bijector. |
+| `RationalQuadraticSplineMaskedCoupling` | Masked coupling with a rational-quadratic-spline inner bijector. |
+| `Permutation` | Permute the dimensions of the input. |
+| `LULinear` | Invertible linear transform parameterised by an LU decomposition. |
 
-To install the latest GitHub <RELEASE>, just call the following on the command line:
+### Inference surjection layers (dimensionality-reducing)
 
-```bash
-pip install git+https://github.com/dirmeier/surjectors@<RELEASE>
-```
+| Object | Description |
+|--------|-------------|
+| `Slice` | Drop dimensions, modelling the removed ones with a decoder distribution. |
+| `MLPInferenceFunnel` | LU-linear funnel with an MLP-parameterised decoder. |
+| `MaskedCouplingInferenceFunnel` | Coupling funnel with a configurable inner bijector and decoder. |
+| `AffineMaskedCouplingInferenceFunnel` | Coupling funnel with an affine inner bijector. |
+| `RationalQuadraticSplineMaskedCouplingInferenceFunnel` | Coupling funnel with an RQ-spline inner bijector. |
+| `MaskedAutoregressiveInferenceFunnel` | Autoregressive funnel with a configurable inner bijector. |
+| `AffineMaskedAutoregressiveInferenceFunnel` | Autoregressive funnel with an affine inner bijector. |
+| `RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel` | Autoregressive funnel with an RQ-spline inner bijector. |
+
+### Re-exported Distrax bijectors
+
+`ScalarAffine`, `RationalQuadraticSpline`, `Inverse` — convenient as the *inner*
+bijector passed to the layers above via a `bijector_fn`.
+
+### `surjectors.nn`
+
+| Object | Description |
+|--------|-------------|
+| `MADE` | Masked autoregressive density-estimator network (autoregressive conditioner). |
+| `make_mlp` | Build an MLP conditioner/decoder network. |
+| `make_transformer` | Build a transformer conditioner. |
+
+### `surjectors.util`
+
+| Object | Description |
+|--------|-------------|
+| `as_batch_iterator` | Turn a labelled dataset (`named_dataset`) into a minibatch iterator. |
+| `make_alternating_binary_mask` | Build an alternating boolean mask for coupling layers. |
+| `unstack` | Split an array along an axis into a list of arrays. |
+
+## Examples
+
+- [`EXAMPLES.md`](EXAMPLES.md) — narrative walkthroughs: an introduction, un-/conditional
+  density estimation on two-moons, and dimensionality reduction with surjections.
+- [`examples/`](examples) — runnable command-line scripts.
 
 ## Contributing
 
-Contributions in the form of pull requests are more than welcome. A good way to start is to check out issues labelled
+Contributions in the form of pull requests are more than welcome. A good way to
+start is to check out issues labelled
 [good first issue](https://github.com/dirmeier/surjectors/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
 In order to contribute:
 
 1) Clone `surjectors` and install `uv` from [here](https://docs.astral.sh/uv/getting-started/installation/).
 2) Install all dependencies using `uv sync --all-groups`.
-3) Install `pre-commit` and `gitlint` via:
+3) Install the Git hooks:
 
-   ```shell
-   pre-commit install
-   gitlint install-hook
+   ```bash
+   uv run pre-commit install
+   uv run gitlint install-hook
    ```
-4) Create a new branch locally `git checkout -b feature/my-new-feature` or `git checkout -b issue/fixes-bug`.
+4) Create a new branch locally, e.g. `git checkout -b feature/my-new-feature`.
 5) Implement your contribution and ideally a test case.
-6) Test it by calling `make tests`, `make lints` and `make format` on the (Unix) command line.
+6) Check your work (see below).
 7) Submit a PR 🙂.
+
+### Development commands
+
+The project uses `uv` for everything (there is no `Makefile`):
+
+```bash
+uv sync --all-groups                                   # install
+uv run pytest                                          # run tests
+uv run ruff check surjectors examples                  # lint
+uv run ruff check --fix surjectors examples \
+  && uv run ruff format surjectors examples            # auto-fix + format
+uv run mypy surjectors                                 # type-check
+uv run pre-commit run --all-files                      # all pre-commit hooks
+```
 
 ## Citing Surjectors
 
