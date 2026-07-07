@@ -21,6 +21,8 @@ This introductory notebook illustrates the usage of the basic functionality of `
 At its core, `Surjector` uses Haiku to compose functions with trainable parameters, such as neural networks, and Distrax to compute probability densities and sample random variables. Hence using `Surjectors` also requires some knowledge of these two.
 Below we illustrate how to use Haiku's core functionality to build pure functions and how to build normalizing flows for density estimation. You can find an interactive version here:
 
+](https://colab.research.google.com/github/dirmeier/surjectors/blob/main/docs/notebooks/introduction.ipynb)
+
 ```python
 from collections import namedtuple
 
@@ -134,6 +136,7 @@ Haiku calls `TransformedDistribution.__call__(y)`. In order to have access to al
 - `log_prob`
 - `sample_and_log_prob`
 - `inverse_and_log_prob`
+
 
 we implemented `__call__` with the following signature and method body:
 
@@ -316,6 +319,8 @@ for i, ax in enumerate(axes):
 plt.show()
 ```
 
+![](figures/introduction_00.png)
+
 We use a masked coupling bijector with affine transformations. Specifically, we use five masked coupling layers that we concatenate using the `Chain` operator.
 
 ```python
@@ -388,6 +393,8 @@ plt.legend(loc="upper right", bbox_to_anchor=(1.5, 0.6))
 plt.show()
 ```
 
+![](figures/introduction_01.png)
+
 ### References
 
 [1] Klein, Samuel, et al. "Funnels: Exact maximum likelihood with dimensionality reduction". Workshop on Bayesian Deep Learning, Advances in Neural Information Processing Systems, 2021.
@@ -401,6 +408,8 @@ plt.show()
 ## Unconditional and conditional density estimation
 
 Normalizing flows are generative models that utilize multiple parameterized transformations to create expressive probabilty density functions which can be evaluated exactly. In this notebook, we demonstrate unconditional and conditional normalizing flow training on the two moons data set.
+
+](https://colab.research.google.com/github/dirmeier/surjectors/blob/main/docs/notebooks/normalizing_flows.ipynb)
 
 ```python
 import distrax
@@ -499,6 +508,8 @@ ax.set_title("Two moons data")
 plt.show()
 ```
 
+![](figures/normalizing_flows_00.png)
+
 We define a flow that consists of five layers of masked autoregressive flows (MAFs). Each flow takes a conditioner and an inner bijector function. The conditioner for MAFs is a MADE network for which we can use the `MADE` class.
 The inner bijector can be anything, for instance, an RQ-NSF or an affine transformation.
 
@@ -578,6 +589,8 @@ for ax, title in zip(axes, ["Two moons data", "NF two moons samples"]):
 plt.show()
 ```
 
+![](figures/normalizing_flows_01.png)
+
 ### Conditional normalizing flows
 
 We can use the two moons data set for conditional density estimation using the generated labels as conditioning variables. A conditional flow example is shown below. This time we use a masked coupling flow.
@@ -621,6 +634,8 @@ for ax in axes:
 ax.grid(axis="both", color="0.85", zorder=1)
 plt.show()
 ```
+
+![](figures/normalizing_flows_02.png)
 
 The definition of conditional flow is *exactly the same* as in the unconditional case. For a bit of variety, we use a masked coupling flow though. One advantage of the coupling flow is that we don't need to have a specific conditioner, but
 any MLP will do. One disadvantage is that it is generally a bit less flexible.
@@ -703,6 +718,8 @@ for ax, title in zip(axes, ["Two moons data", "NF two moons samples"]):
 plt.show()
 ```
 
+![](figures/normalizing_flows_03.png)
+
 ### References
 
 [1] Dinh, Laurent, et al. "Density estimation using RealNVP". International Conference on Learning Representations, 2017.
@@ -715,6 +732,8 @@ plt.show()
 
 Surjective normalizing flows use dimensionality-reducing transformations instead of dimensionality-preserving bijective ones. 
 Below we implement several surjective normalizing for a density estimation problem and compare them to a conventional bijective flow.
+
+](https://colab.research.google.com/github/dirmeier/surjectors/blob/main/docs/notebooks/dimension_reduction.ipynb)
 
 ```python
 import distrax
