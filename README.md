@@ -70,8 +70,11 @@ and returns each named method as a typed callable on `model.apply`.
 
 ## Examples
 
-[`EXAMPLES.md`](EXAMPLES.md) — narrative walkthroughs: an introduction, un-/conditional
-  density estimation on two-moons, and dimensionality reduction with surjections.
+Narrative walkthroughs, each self-contained enough to paste into a script or notebook:
+
+- [`examples/introduction.md`](examples/introduction.md) — an introduction to Surjectors.
+- [`examples/density_estimation.md`](examples/density_estimation.md) — un-/conditional density estimation on two-moons.
+- [`examples/dimensionality_reduction.md`](examples/dimensionality_reduction.md) — dimensionality reduction with surjections.
 
 ## Installation
 
