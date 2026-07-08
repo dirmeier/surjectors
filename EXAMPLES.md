@@ -48,7 +48,7 @@ from surjectors.util import (
 
 ### How to construct a Haiku module
 
-We begin by demonstrating how to construct a normalizing flow using Haiku modules. A more torough introduction to Haiku can be found [here](https://dm-haiku.readthedocs.io/en/latest/). We start with some code, before we explain what it does.
+We build a normalizing flow using Haiku modules; a fuller Haiku introduction is [here](https://dm-haiku.readthedocs.io/en/latest/).
 
 ```python
 def make_flow(n_dimensions):
@@ -76,11 +76,9 @@ def make_flow(n_dimensions):
     return as_model(build_td, methods=("log_prob", "sample"))
 ```
 
-This example uses a `Slice` surjector to reduce the dimensionality of some data by a factor of two: ` Slice(n_dimensions // 2, decoder_fn(n_dimensions // 2))`.
+This example uses a `Slice` surjector to reduce the dimensionality of some data by a factor of two: ` Slice(n_dimensions // 2, decoder_fn(n_dimensions // 2))`. `as_model` wraps the zero-argument builder in `hk.transform` and returns an `hk.MultiTransformed` pair whose `apply` exposes each named method (here `log_prob` and `sample`) as its own typed callable — see the next section for why.
 
-Constructing a Haiku module needs to be done within a `hk.transform` block. `as_model` does this for us: it takes a zero-argument callable that builds a `TransformedDistribution` and returns an `hk.MultiTransformed` pair whose `apply` exposes each named method (here `log_prob` and `sample`) as its own typed callable. More on that later (see the Section below).
-
-We can now initialize the module. With Haiku, we first initialize trainable parameters using `fn.init`.
+With Haiku, we first initialize trainable parameters using `fn.init`.
 
 ```python
 rng_key_seq = hk.PRNGSequence(0)
@@ -93,8 +91,7 @@ params = fn.init(next(rng_key_seq), y=y)
 params
 ```
 
-The only trainable paramaters that are flow defines are the weights of the MLP. The MLP is used to compute the conditional probability density inside the `decoder_fn` function.
-The `Slice` surjector itself doesn't have parameters. We can now test the flow. Let's sample some data first.
+The flow's only trainable parameters are the MLP weights inside `decoder_fn`; `Slice` itself has none. Let's sample some data first.
 
 ```python
 samples = fn.apply.sample(params, next(rng_key_seq), sample_shape=(2,))
@@ -109,37 +106,19 @@ fn.apply.log_prob(params, next(rng_key_seq), y=samples)
 
 ### Working with Haiku modules
 
-Haiku's `hk.transform` transforms a function or object into a pure function `fn` that can be used with `jax.vmap` or `jax.pmap` and which can be called using `fn.apply`. Plain `hk.transform` only gives you a single entry point, so calling more than one member function of an object (e.g. both `log_prob` and `sample` on a `TransformedDistribution`) needs `hk.multi_transform` instead — it lets a builder function return several named callables that all share the same parameters. `as_model` wraps this for `TransformedDistribution`:
+Plain `hk.transform` gives a single entry point, so calling more than one method of an object (e.g. both `log_prob` and `sample` on a `TransformedDistribution`) needs `hk.multi_transform` instead — it lets a builder function return several named callables sharing the same parameters. `as_model` wraps this: it takes a zero-argument callable building a `TransformedDistribution` plus the method names to expose, and returns an `hk.MultiTransformed` pair. Initializing uses the first listed method (`log_prob` here); each named method is then reachable as its own typed callable on `model.apply`:
 
-```
-TransformedDistribution(base_distribution, transform)
-```
-
-`as_model` takes a zero-argument callable that builds this object and the names of the methods to expose:
-
-```
+```python
 model = as_model(
     lambda: TransformedDistribution(base_distribution, transform),
     methods=("log_prob", "sample"),
 )
-```
-
-`model` is an `hk.MultiTransformed` pair. Initializing parameters uses the first listed method (`log_prob` here):
-
-```
 params = model.init(rng_key, y=y)
-```
-
-and each named method is reachable as its own typed callable on `model.apply`:
-
-```
 model.apply.log_prob(params, rng_key, y=y)
 model.apply.sample(params, rng_key, sample_shape=(10,))
 ```
 
-when we want to call `TransformedDistribution.log_prob(y)` or `TransformedDistribution.sample(sample_shape=(10,))` respectively.
-
-**Information of which methods classes implement can be found in the API documentation.**
+Which methods each class implements is in the API documentation.
 
 ### How to construct `TransformedDistribution` objects
 
@@ -343,7 +322,7 @@ data = namedtuple("named_dataset", "y")(y)
 params, losses = train(next(rng_key_seq), data, fn)
 ```
 
-That's it. Let's draw some sampels.
+That's it. Let's draw some samples.
 
 ```python
 samples = fn.apply.sample(params, next(rng_key_seq), sample_shape=(1000,))
@@ -769,7 +748,7 @@ def train(rng_key, data, model, n_iter=1000):
 
 ### Data
 
-We simulate data from a factor model for testing. The data can should easily embedded in a lower dimensional space via a linear transformation.
+We simulate data from a factor model for testing. The data can easily be embedded in a lower dimensional space via a linear transformation.
 
 ```python
 rng_key_seq = hk.PRNGSequence(0)
@@ -789,7 +768,7 @@ y = (W @ z.T).T + jr.normal(next(rng_key_seq), (n, p_data)) * 0.1
 
 We start with a simple baseline: a masked coupling flow with rational quadratic splines as transforms. The data is not dimensionality-reducing and hence tries to estimate the density on the $20$-dimensional space.
 
-A RQ splince flow requires defining ranges for which we use the lower and upper bounds of the data
+An RQ spline flow requires defining ranges for which we use the lower and upper bounds of the data
 
 ```python
 range_min, range_max = float(np.min(y)), float(np.max(y))
@@ -808,7 +787,7 @@ def make_rq_conditioner(event_shape, hidden_sizes, n_bins):
     )
 ```
 
-We create a baseine that uses five masked coupling flows.
+We create a baseline that uses five masked coupling flows.
 
 ```python
 def make_baseline(n_dimensions):

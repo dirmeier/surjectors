@@ -7,7 +7,7 @@
 
 Surjectors is a light-weight library for density estimation using inference and
 generative surjective normalizing flows, i.e., flows that can *reduce* or
-*increase* dimensionality while retaining exact-likelihood training. 
+*increase* dimensionality while retaining exact-likelihood training.
 For completeness, we also provide implementations of conventional NF-based bijections.
 
 Surjectors makes use of
@@ -66,8 +66,12 @@ Everything runs inside `hk.transform`, so a `TransformedDistribution` method
 can be called directly, as above, when only one method is needed. To expose
 several methods (e.g. both `log_prob` and `sample`) from the same set of
 parameters, use `surjectors.util.as_model`, which wraps `hk.multi_transform`
-and returns each named method as a typed callable on `model.apply`. See
-[`EXAMPLES.md`](EXAMPLES.md).
+and returns each named method as a typed callable on `model.apply`.
+
+## Examples
+
+[`EXAMPLES.md`](EXAMPLES.md) — narrative walkthroughs: an introduction, un-/conditional
+  density estimation on two-moons, and dimensionality reduction with surjections.
 
 ## Installation
 
@@ -93,14 +97,14 @@ All layers implement `forward_and_likelihood_contribution` /
 Distrax-compatible `forward_and_log_det` / `inverse_and_log_det`. Import
 everything from the top-level `surjectors` namespace.
 
-### Core
+### `surjectors`
 
 | Object | Description |
 |--------|-------------|
 | `TransformedDistribution` | A base distribution pushed through a transform; exposes `log_prob`, `sample`, `sample_and_log_prob`, `inverse_and_log_prob`. |
 | `Chain` | Compose several bijectors/surjectors into a single transform. |
 
-### Bijective layers (dimensionality-preserving)
+### `surjectors.bijectors`
 
 | Object | Description |
 |--------|-------------|
@@ -112,7 +116,7 @@ everything from the top-level `surjectors` namespace.
 | `Permutation` | Permute the dimensions of the input. |
 | `LULinear` | Invertible linear transform parameterised by an LU decomposition. |
 
-### Inference surjection layers (dimensionality-reducing)
+### `surjectors.surjectors`
 
 | Object | Description |
 |--------|-------------|
@@ -124,11 +128,6 @@ everything from the top-level `surjectors` namespace.
 | `MaskedAutoregressiveInferenceFunnel` | Autoregressive funnel with a configurable inner bijector. |
 | `AffineMaskedAutoregressiveInferenceFunnel` | Autoregressive funnel with an affine inner bijector. |
 | `RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel` | Autoregressive funnel with an RQ-spline inner bijector. |
-
-### Re-exported Distrax bijectors
-
-`ScalarAffine`, `RationalQuadraticSpline`, `Inverse` — convenient as the *inner*
-bijector passed to the layers above via a `bijector_fn`.
 
 ### `surjectors.nn`
 
@@ -146,12 +145,6 @@ bijector passed to the layers above via a `bijector_fn`.
 | `make_alternating_binary_mask` | Build an alternating boolean mask for coupling layers. |
 | `unstack` | Split an array along an axis into a list of arrays. |
 
-## Examples
-
-- [`EXAMPLES.md`](EXAMPLES.md) — narrative walkthroughs: an introduction, un-/conditional
-  density estimation on two-moons, and dimensionality reduction with surjections.
-- [`examples/`](examples) — runnable command-line scripts.
-
 ## Contributing
 
 Contributions in the form of pull requests are more than welcome. A good way to
@@ -165,8 +158,7 @@ In order to contribute:
 3) Install the Git hooks:
 
    ```bash
-   uv run pre-commit install
-   uv run gitlint install-hook
+   uv run pre-commit install -t pre-commit -t commit-msg
    ```
 4) Create a new branch locally, e.g. `git checkout -b feature/my-new-feature`.
 5) Implement your contribution and ideally a test case.
@@ -178,13 +170,13 @@ In order to contribute:
 The project uses `uv` for everything (there is no `Makefile`):
 
 ```bash
-uv sync --all-groups                     
-uv run pytest                            
-uv run ruff check surjectors examples    
+uv sync --all-groups
+uv run pytest
+uv run ruff check surjectors examples
 uv run ruff check --fix surjectors examples
-uv run ruff format surjectors examples    
-uv run mypy surjectors examples         
-uv run pre-commit run --all-files       
+uv run ruff format surjectors examples
+uv run mypy surjectors examples
+uv run pre-commit run --all-files
 ```
 
 ## Citing Surjectors
