@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from typing import ClassVar
 
 import haiku as hk
 from jax import numpy as jnp
@@ -8,6 +9,11 @@ from surjectors._src.surjectors.funnel import Funnel
 
 class Slice(Funnel):
   """A slice funnel.
+
+  The forward direction invents the dropped dimensions by sampling from
+  the decoder, so it needs an active Haiku rng
+  (``forward_needs_rng`` is ``True``); the inverse direction is a pure
+  likelihood evaluation and needs no rng.
 
   Args:
       n_keep: number of dimensions to keep
@@ -50,6 +56,10 @@ class Slice(Funnel):
        Gap between VAEs and Flows". Advances in Neural Information
        Processing Systems, 2020.
   """
+
+  forward_needs_rng: ClassVar[bool] = (
+    True  # invents the dropped dims by sampling
+  )
 
   def __init__(self, n_keep: int, decoder: Callable):
     super().__init__(n_keep)

@@ -48,3 +48,8 @@ def test_forward_reconstructs_kept_dimensions():
   assert jnp.array_equal(y[:, :n_keep], z)
   assert lc.shape == (n,)
   assert jnp.all(jnp.isfinite(lc))
+
+
+def test_declares_forward_needs_rng():
+  assert Slice.forward_needs_rng is True
+  assert Slice.inverse_needs_rng is False

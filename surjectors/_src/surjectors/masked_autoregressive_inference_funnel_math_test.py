@@ -62,3 +62,8 @@ def test_forward_reconstructs_full_dimensionality():
   assert y.shape == (n, n_dimension)
   assert lc.shape == (n,)
   assert jnp.all(jnp.isfinite(lc))
+
+
+def test_declares_forward_needs_rng():
+  assert MaskedAutoregressiveInferenceFunnel.forward_needs_rng is True
+  assert MaskedAutoregressiveInferenceFunnel.inverse_needs_rng is False

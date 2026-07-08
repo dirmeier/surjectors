@@ -10,6 +10,12 @@ class Funnel(Surjector):
   base owns the two operations every funnel repeats: splitting an array at
   ``n_keep`` and conditioning a latent on an optional context.
 
+  A funnel changes dimensionality, so exactly one direction must invent
+  the dropped or added dimensions by sampling, and therefore needs an
+  active Haiku rng; subclasses declare which one via the
+  ``forward_needs_rng`` / ``inverse_needs_rng`` class variables inherited
+  from :class:`~surjectors._src.surjectors.surjector.Surjector`.
+
   Args:
       n_keep: number of dimensions to keep
   """

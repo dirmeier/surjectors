@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import ClassVar
 
 from jax import Array
 
@@ -6,7 +7,20 @@ from surjectors._src._transform import Transform
 
 
 class Surjector(Transform, ABC):
-  """A surjective transformation."""
+  """A surjective transformation.
+
+  A dimension-changing surjector must inject randomness in exactly one
+  direction (the direction that invents dropped or added dimensions); the
+  other direction is a pure likelihood evaluation. Subclasses that consume
+  ``hk.next_rng_key()`` in ``_forward_and_likelihood_contribution`` or
+  ``_inverse_and_likelihood_contribution`` must set the corresponding flag
+  below to ``True``, so callers can check which direction needs an active
+  Haiku rng before assuming a call is a pure function of its inputs (e.g.
+  before wrapping a transform in ``hk.without_apply_rng``).
+  """
+
+  forward_needs_rng: ClassVar[bool] = False
+  inverse_needs_rng: ClassVar[bool] = False
 
   def inverse_and_likelihood_contribution(
     self, y: Array, x: Array | None = None, **kwargs

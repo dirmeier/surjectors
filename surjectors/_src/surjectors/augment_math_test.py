@@ -48,3 +48,8 @@ def test_forward_drops_augmented_dimensions():
   assert jnp.array_equal(y, z[:, :n_keep])
   assert lc.shape == (n,)
   assert jnp.all(jnp.isfinite(lc))
+
+
+def test_declares_inverse_needs_rng():
+  assert Augment.inverse_needs_rng is True
+  assert Augment.forward_needs_rng is False

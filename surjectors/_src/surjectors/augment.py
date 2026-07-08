@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import haiku as hk
 from jax import numpy as jnp
 
@@ -7,10 +9,17 @@ from surjectors._src.surjectors.funnel import Funnel
 class Augment(Funnel):
   """Augment generative funnel.
 
+  The inverse direction invents the added dimensions by sampling from the
+  encoder, so it needs an active Haiku rng (``inverse_needs_rng`` is
+  ``True``); the forward direction is a pure likelihood evaluation and
+  needs no rng.
+
   Args:
       n_keep: number of dimensions to keep
       encoder: encoder callable
   """
+
+  inverse_needs_rng: ClassVar[bool] = True  # invents the added dims by sampling
 
   def __init__(self, n_keep, encoder):
     super().__init__(n_keep)

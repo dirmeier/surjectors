@@ -190,3 +190,8 @@ def test_generative_surjection(generative_surjection):
 
 def test_inference_surjection(inference_surjection):
   _surjection(*inference_surjection)
+
+
+def test_declares_inverse_needs_rng():
+  assert AffineMaskedCouplingGenerativeFunnel.inverse_needs_rng is True
+  assert AffineMaskedCouplingGenerativeFunnel.forward_needs_rng is False
