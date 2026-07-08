@@ -15,6 +15,7 @@ class Funnel(Surjector):
   """
 
   def __init__(self, n_keep: int):
+    super().__init__()
     self.n_keep = n_keep
 
   def _split_input(self, array):

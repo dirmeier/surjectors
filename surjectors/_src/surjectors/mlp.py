@@ -1,13 +1,12 @@
 from collections.abc import Callable
 
 import haiku as hk
-from jax import numpy as jnp
 
 from surjectors._src.bijectors.lu_linear import LULinear
-from surjectors._src.surjectors.surjector import Surjector
+from surjectors._src.surjectors.funnel import Funnel
 
 
-class MLPInferenceFunnel(Surjector, hk.Module):  # type: ignore[metaclass]
+class MLPInferenceFunnel(Funnel, hk.Module):  # type: ignore[metaclass]
   """A multilayer perceptron inference funnel.
 
   Args:
@@ -38,15 +37,10 @@ class MLPInferenceFunnel(Surjector, hk.Module):  # type: ignore[metaclass]
   """
 
   def __init__(self, n_keep: int, decoder: Callable):
-    super().__init__()
+    super().__init__(n_keep)
     self._r = LULinear(n_keep, False)
     self._w_prime = hk.Linear(n_keep, True)
     self.decoder = decoder
-    self.n_keep = n_keep
-
-  def _split_input(self, array):
-    spl = jnp.split(array, [self.n_keep], axis=-1)
-    return spl
 
   def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
     y_plus, y_minus = self._split_input(y)

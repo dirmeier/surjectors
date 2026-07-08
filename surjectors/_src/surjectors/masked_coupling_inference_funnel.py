@@ -81,11 +81,10 @@ class MaskedCouplingInferenceFunnel(Funnel):
     faux, jac_det = self._inner_bijector(self._mask(y)).inverse_and_log_det(
       y, x=x
     )
-    # TODO(simon): this should be relegated to the base class:
-    #  MaskedCouplingInferenceFunnel (see issue #14 on GitHub)
-    z = faux[:, : self.n_keep]
+    z, _ = self._split_input(faux)
+    _, y_minus = self._split_input(y)
     z_condition = self._condition(z, x)
-    lc = self.decoder(z_condition).log_prob(y[:, self.n_keep :])
+    lc = self.decoder(z_condition).log_prob(y_minus)
     return z, lc + jac_det
 
   def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
