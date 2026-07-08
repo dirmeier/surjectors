@@ -96,5 +96,5 @@ class MaskedAutoregressiveInferenceFunnel(Funnel):
     # TODO(simon): remote the conditioning here?
     y_plus, lc = self._inner_bijector().forward_and_log_det(z, y_cond)
 
-    y = jnp.concatenate([y_plus, y_minus])
+    y = jnp.concatenate([y_plus, y_minus], axis=-1)
     return y, lc + jac_det
