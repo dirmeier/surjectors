@@ -64,15 +64,11 @@ class MaskedAutoregressive(Bijector):
     for _ in jnp.arange(z.shape[-1]):
       params = self.conditioner(y, x)
       y, log_det = self._inner_bijector(params).forward_and_log_det(z)
-    log_det = sum_last(
-      log_det, self._event_ndims - self._inner_event_ndims
-    )
+    log_det = sum_last(log_det, self._event_ndims - self._inner_event_ndims)
     return y, log_det
 
   def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
     params = self.conditioner(y, x)
     z, log_det = self._inner_bijector(params).inverse_and_log_det(y)
-    log_det = sum_last(
-      log_det, self._event_ndims - self._inner_event_ndims
-    )
+    log_det = sum_last(log_det, self._event_ndims - self._inner_event_ndims)
     return z, log_det
