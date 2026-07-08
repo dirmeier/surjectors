@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import distrax
 import haiku as hk
 from chex import Array
@@ -10,11 +12,18 @@ from surjectors._src.surjectors.surjector import Surjector
 class AffineMaskedCouplingGenerativeFunnel(Surjector):
   """A Generative funnel layer using masked affine coupling.
 
+  The inverse direction invents the added dimensions by sampling from the
+  encoder, so it needs an active Haiku rng (``inverse_needs_rng`` is
+  ``True``); the forward direction is a pure likelihood evaluation and
+  needs no rng.
+
   Args:
       n_keep: number of dimensions to keep
       encoder: callable
       conditioner: callable
   """
+
+  inverse_needs_rng: ClassVar[bool] = True  # invents the added dims by sampling
 
   def __init__(self, n_keep, encoder, conditioner):
     self.n_keep = n_keep

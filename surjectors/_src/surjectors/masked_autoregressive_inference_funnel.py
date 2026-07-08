@@ -1,14 +1,15 @@
 from collections.abc import Callable
+from typing import ClassVar
 
 import haiku as hk
 from jax import numpy as jnp
 
 from surjectors._src.bijectors.masked_autoregressive import MaskedAutoregressive
 from surjectors._src.conditioners.nn.made import MADE
-from surjectors._src.surjectors.surjector import Surjector
+from surjectors._src.surjectors.funnel import Funnel
 
 
-class MaskedAutoregressiveInferenceFunnel(Surjector):
+class MaskedAutoregressiveInferenceFunnel(Funnel):
   """A masked autoregressive funnel layer.
 
   The MaskedAutoregressiveInferenceFunnel is an autoregressive funnel,
@@ -16,6 +17,11 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
   as in MaskedAutoegressive. Its inner bijectors needs to be specified in
   comparison to AffineMaskedAutoregressiveInferenceFunnel and
   RationalQuadraticSplineMaskedAutoregressiveInferenceFunnel.
+
+  The forward direction invents the dropped dimensions by sampling from
+  the decoder, so it needs an active Haiku rng
+  (``forward_needs_rng`` is ``True``); the inverse direction is a pure
+  likelihood evaluation and needs no rng.
 
   Args:
       n_keep: number of dimensions to keep
@@ -59,6 +65,10 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
           Systems, 2017.
   """
 
+  forward_needs_rng: ClassVar[bool] = (
+    True  # invents the dropped dims by sampling
+  )
+
   def __init__(
     self,
     n_keep: int,
@@ -66,7 +76,7 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
     conditioner: MADE,
     bijector_fn: Callable,
   ):
-    self.n_keep = n_keep
+    super().__init__(n_keep)
     self.decoder = decoder
     self.conditioner = conditioner
     self.bijector_fn = bijector_fn
@@ -77,32 +87,24 @@ class MaskedAutoregressiveInferenceFunnel(Surjector):
   def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
     y_plus, y_minus = y[..., : self.n_keep], y[..., self.n_keep :]
 
-    y_cond = y_minus
-    if x is not None:
-      y_cond = jnp.concatenate([y_cond, x], axis=-1)
+    y_cond = self._condition(y_minus, x)
     z, jac_det = self._inner_bijector().inverse_and_log_det(y_plus, y_cond)
 
-    z_condition = z
-    if x is not None:
-      z_condition = jnp.concatenate([z, x], axis=-1)
+    z_condition = self._condition(z, x)
     lc = self.decoder(z_condition).log_prob(y_minus)
 
     return z, lc + jac_det
 
   def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
-    z_condition = z
-    if x is not None:
-      z_condition = jnp.concatenate([z, x], axis=-1)
+    z_condition = self._condition(z, x)
     y_minus, jac_det = self.decoder(z_condition).sample_and_log_prob(
       seed=hk.next_rng_key()
     )
 
-    y_cond = y_minus
-    if x is not None:
-      y_cond = jnp.concatenate([y_cond, x], axis=-1)
+    y_cond = self._condition(y_minus, x)
     # TODO(simon): need to sort the indexes correctly (?)
     # TODO(simon): remote the conditioning here?
     y_plus, lc = self._inner_bijector().forward_and_log_det(z, y_cond)
 
-    y = jnp.concatenate([y_plus, y_minus])
+    y = jnp.concatenate([y_plus, y_minus], axis=-1)
     return y, lc + jac_det

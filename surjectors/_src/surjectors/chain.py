@@ -1,8 +1,8 @@
 from surjectors._src._transform import Transform
+from surjectors._src.bijectors.wrap import as_transform
 from surjectors._src.surjectors.surjector import Surjector
 
 
-# type: ignore[B009]
 class Chain(Surjector):
   """Chain of normalizing flows.
 
@@ -20,48 +20,20 @@ class Chain(Surjector):
   """
 
   def __init__(self, transforms: list[Transform]):
-    self._transforms = transforms
+    self._transforms = [as_transform(t) for t in transforms]
 
   def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
-    z, lcs = self._inverse_and_log_contribution_dispatch(
-      self._transforms[0], y, x
-    )
+    z, lcs = self._transforms[0].inverse_and_likelihood_contribution(y, x=x)
     for transform in self._transforms[1:]:
-      z, lc = self._inverse_and_log_contribution_dispatch(transform, z, x)
-      lcs += lc
+      z, lc = transform.inverse_and_likelihood_contribution(z, x=x)
+      lcs = lcs + lc
     return z, lcs
 
-  @staticmethod
-  def _inverse_and_log_contribution_dispatch(transform, y, x):
-    if isinstance(transform, Surjector):
-      if hasattr(transform, "inverse_and_likelihood_contribution"):
-        fn = getattr(transform, "inverse_and_likelihood_contribution")
-      else:
-        fn = getattr(transform, "inverse_and_log_det")
-      z, lc = fn(y, x)
-    else:
-      fn = getattr(transform, "inverse_and_log_det")
-      z, lc = fn(y)
-    return z, lc
-
   def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
-    y, log_det = self._forward_and_log_contribution_dispatch(
-      self._transforms[-1], z, x
+    y, log_det = self._transforms[-1].forward_and_likelihood_contribution(
+      z, x=x
     )
     for transform in reversed(self._transforms[:-1]):
-      y, lc = self._forward_and_log_contribution_dispatch(transform, y, x)
-      log_det += lc
+      y, lc = transform.forward_and_likelihood_contribution(y, x=x)
+      log_det = log_det + lc
     return y, log_det
-
-  @staticmethod
-  def _forward_and_log_contribution_dispatch(transform, z, x):
-    if isinstance(transform, Surjector):
-      if hasattr(transform, "forward_and_likelihood_contribution"):
-        fn = getattr(transform, "forward_and_likelihood_contribution")
-      else:
-        fn = getattr(transform, "forward_and_log_det")
-      y, lc = fn(z, x)
-    else:
-      fn = getattr(transform, "forward_and_log_det")
-      y, lc = fn(z)
-    return y, lc

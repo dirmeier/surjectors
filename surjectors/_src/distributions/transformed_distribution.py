@@ -1,10 +1,10 @@
 import chex
-import distrax
 import haiku as hk
 from distrax import Distribution
 from jax import Array
 from tensorflow_probability.substrates.jax import distributions as tfd
 
+from surjectors._src.bijectors.wrap import as_transform
 from surjectors._src.surjectors.surjector import Surjector
 
 
@@ -38,25 +38,9 @@ class TransformedDistribution:
     transform: Surjector,
   ):
     self.base_distribution = base_distribution
-    self.transform = transform
+    self.transform = as_transform(transform)
 
-  def __call__(self, method, **kwargs):
-    """Call the TransformedDistribution object.
-
-    Depending on "method", computes log-probability of an event or samples
-    from the distribution.
-
-    Args:
-        method: either "sample" or "log_prob"
-        **kwargs: several keyword arguments that are dispatched to
-            whatever method is called.
-
-    Returns:
-        returns whatever 'method' returns
-    """
-    return getattr(self, method)(**kwargs)
-
-  def log_prob(self, y: Array, x: Array = None):
+  def log_prob(self, y: Array, x: Array | None = None):
     """Calculate the log probability of an event conditional on another.
 
     Args:
@@ -69,7 +53,7 @@ class TransformedDistribution:
     _, lp = self.inverse_and_log_prob(y, x)
     return lp
 
-  def inverse_and_log_prob(self, y: Array, x: Array = None):
+  def inverse_and_log_prob(self, y: Array, x: Array | None = None):
     """Compute the inverse transformation and its log probability.
 
     Args:
@@ -84,15 +68,12 @@ class TransformedDistribution:
       chex.assert_equal_rank([y, x])
       chex.assert_axis_dimension(y, 0, x.shape[0])
 
-    if isinstance(self.transform, distrax.Bijector):
-      z, lc = self.transform.inverse_and_log_det(y)
-    else:
-      z, lc = self.transform.inverse_and_likelihood_contribution(y, x=x)
+    z, lc = self.transform.inverse_and_likelihood_contribution(y, x=x)
     lp_z = self.base_distribution.log_prob(z)
     lp = lp_z + lc
     return z, lp
 
-  def sample(self, sample_shape=(), x: Array = None):
+  def sample(self, sample_shape=(), x: Array | None = None):
     """Sample an event.
 
     Args:
@@ -106,7 +87,7 @@ class TransformedDistribution:
     y, _ = self.sample_and_log_prob(sample_shape, x)
     return y
 
-  def sample_and_log_prob(self, sample_shape=(), x: Array = None):
+  def sample_and_log_prob(self, sample_shape=(), x: Array | None = None):
     """Sample an event and compute its log probability.
 
     Args:

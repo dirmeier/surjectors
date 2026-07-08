@@ -1,13 +1,19 @@
 from collections.abc import Callable
+from typing import ClassVar
 
 import haiku as hk
 from jax import numpy as jnp
 
-from surjectors._src.surjectors.surjector import Surjector
+from surjectors._src.surjectors.funnel import Funnel
 
 
-class Slice(Surjector):
+class Slice(Funnel):
   """A slice funnel.
+
+  The forward direction invents the dropped dimensions by sampling from
+  the decoder, so it needs an active Haiku rng
+  (``forward_needs_rng`` is ``True``); the inverse direction is a pure
+  likelihood evaluation and needs no rng.
 
   Args:
       n_keep: number of dimensions to keep
@@ -51,26 +57,22 @@ class Slice(Surjector):
        Processing Systems, 2020.
   """
 
-  def __init__(self, n_keep: int, decoder: Callable):
-    self.n_keep = n_keep
-    self.decoder = decoder
+  forward_needs_rng: ClassVar[bool] = (
+    True  # invents the dropped dims by sampling
+  )
 
-  def _split_input(self, array):
-    spl = jnp.split(array, [self.n_keep], axis=-1)
-    return spl
+  def __init__(self, n_keep: int, decoder: Callable):
+    super().__init__(n_keep)
+    self.decoder = decoder
 
   def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
     z, y_minus = self._split_input(y)
-    z_condition = z
-    if x is not None:
-      z_condition = jnp.concatenate([z, x], axis=-1)
+    z_condition = self._condition(z, x)
     lc = self.decoder(z_condition).log_prob(y_minus)
     return z, lc
 
   def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
-    z_condition = z
-    if x is not None:
-      z_condition = jnp.concatenate([z, x], axis=-1)
+    z_condition = self._condition(z, x)
     y_minus, lc = self.decoder(z_condition).sample_and_log_prob(
       seed=hk.next_rng_key()
     )

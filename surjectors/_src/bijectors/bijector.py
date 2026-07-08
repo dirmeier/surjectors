@@ -5,11 +5,10 @@ from chex import Array
 from surjectors._src.surjectors.surjector import Surjector
 
 
-# pylint: disable=too-many-arguments
 class Bijector(Surjector, ABC):
   """Bijector base class."""
 
-  def inverse_and_log_det(self, y: Array, x: Array = None, **kwargs):
+  def inverse_and_log_det(self, y: Array, x: Array | None = None, **kwargs):
     """Compute the inverse transformation and its Jacobian determinant.
 
     Args:
@@ -24,7 +23,7 @@ class Bijector(Surjector, ABC):
     """
     return self.inverse_and_likelihood_contribution(y, x=x, **kwargs)
 
-  def forward_and_log_det(self, z: Array, x: Array = None, **kwargs):
+  def forward_and_log_det(self, z: Array, x: Array | None = None, **kwargs):
     """Compute the forward transformation and its Jacobian determinant.
 
     Args:

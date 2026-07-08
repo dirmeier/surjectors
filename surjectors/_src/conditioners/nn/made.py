@@ -66,7 +66,7 @@ class MADE(hk.Module):
       )
     self.layers = tuple(layers)
 
-  def __call__(self, y: Array, x: Array = None):
+  def __call__(self, y: Array, x: Array | None = None):
     """Apply the MADE network.
 
     Args:

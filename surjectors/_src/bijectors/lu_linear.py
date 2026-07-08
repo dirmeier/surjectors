@@ -6,8 +6,7 @@ from jax import numpy as jnp
 from surjectors._src.bijectors.bijector import Bijector
 
 
-# pylint: disable=arguments-differ,too-many-instance-attributes
-class LULinear(Bijector, hk.Module):
+class LULinear(Bijector, hk.Module):  # type: ignore[metaclass]
   """An bijection based on the LU composition.
 
   Args:

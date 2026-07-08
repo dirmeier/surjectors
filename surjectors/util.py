@@ -1,18 +1,34 @@
 """Utility functions."""
 
 from collections import namedtuple
+from collections.abc import Callable
+from typing import NamedTuple
 
+import haiku as hk
 import numpy as np
-from jax import lax
+from jax import Array, lax
 from jax import numpy as jnp
 from jax import random as jr
 
-__all__ = ["make_alternating_binary_mask", "as_batch_iterator", "unstack"]
+from surjectors._src.distributions.transformed_distribution import (
+  TransformedDistribution,
+)
 
-named_dataset = namedtuple("named_dataset", "y x")
+__all__ = [
+  "make_alternating_binary_mask",
+  "as_batch_iterator",
+  "unstack",
+  "as_model",
+]
 
 
-# pylint: disable=too-few-public-methods
+class named_dataset(NamedTuple):
+  """A labelled dataset: responses ``y`` and optional conditioning ``x``."""
+
+  y: Array
+  x: Array | None = None
+
+
 class _DataLoader:
   """Dataloader class."""
 
@@ -48,7 +64,7 @@ def make_alternating_binary_mask(n_dim: int, even_idx_as_true: bool = False):
 
 
 def as_batch_iterator(
-  rng_key: jr.PRNGKey, data: named_dataset, batch_size: int, shuffle=True
+  rng_key: Array, data: named_dataset, batch_size: int, shuffle: bool = True
 ) -> _DataLoader:
   """Create a batch iterator for a data set.
 
@@ -118,3 +134,34 @@ def unstack(x, axis=0):
   return [
     lax.index_in_dim(x, i, axis, keepdims=False) for i in range(x.shape[axis])
   ]
+
+
+def as_model(
+  build_td: Callable[[], TransformedDistribution],
+  methods: tuple[str, ...] = ("log_prob", "sample"),
+) -> hk.MultiTransformed:
+  """Wrap a TransformedDistribution constructor as a typed Haiku model.
+
+  Args:
+      build_td: zero-argument callable constructing a TransformedDistribution
+          inside the Haiku transform
+      methods: names of TransformedDistribution methods to expose as typed
+          callables. The first method is used to initialize parameters.
+
+  Returns:
+      an ``hk.MultiTransformed`` pair. ``model.apply.<method>(params, rng,
+      **kwargs)`` calls the named TransformedDistribution method;
+      ``model.init(rng, **kwargs)`` initializes parameters using the first
+      listed method.
+  """
+  apply_fns = namedtuple("ApplyFns", methods)  # type: ignore[misc]
+
+  def _model():
+    td = build_td()
+
+    def init(**kwargs):
+      return getattr(td, methods[0])(**kwargs)
+
+    return init, apply_fns(*(getattr(td, name) for name in methods))
+
+  return hk.multi_transform(_model)

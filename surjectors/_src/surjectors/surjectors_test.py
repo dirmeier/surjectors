@@ -23,7 +23,7 @@ from surjectors._src.surjectors.affine_masked_coupling_inference_funnel import (
 from surjectors._src.surjectors.augment import Augment
 from surjectors._src.surjectors.chain import Chain
 from surjectors._src.surjectors.slice import Slice
-from surjectors.util import make_alternating_binary_mask
+from surjectors.util import as_model, make_alternating_binary_mask
 
 
 def simple_dataset(rng_key, batch_size, n_dimension, n_latent):
@@ -108,14 +108,12 @@ def make_surjector(n_dimension, n_latent, surjector_fn):
       layers.append(layer)
     return Chain(layers)
 
-  def _flow(method, **kwargs):
-    td = TransformedDistribution(
+  def _build_td():
+    return TransformedDistribution(
       _base_distribution_fn(n_latent), _transformation_fn(n_dimension)
     )
-    return td(method, **kwargs)
 
-  td = hk.transform(_flow)
-  return td
+  return as_model(_build_td, methods=("log_prob",))
 
 
 def _get_slice_surjector(n_latent, n_dimension):
@@ -156,7 +154,7 @@ def train(rng_seq, model, sampler, n_iter=5):
   @jax.jit
   def step(rng, params, state, **batch):
     def loss_fn(params):
-      lp = model.apply(params, rng, method="log_prob", **batch)
+      lp = model.apply.log_prob(params, rng, **batch)
       return -jnp.sum(lp)
 
     loss, grads = jax.value_and_grad(loss_fn)(params)
@@ -165,7 +163,7 @@ def train(rng_seq, model, sampler, n_iter=5):
     return loss, new_params, new_state
 
   init_data = sampler(next(rng_seq))
-  params = model.init(next(rng_seq), method="log_prob", **init_data)
+  params = model.init(next(rng_seq), **init_data)
 
   adam = optax.adamw(0.001)
   state = adam.init(params)
@@ -192,3 +190,8 @@ def test_generative_surjection(generative_surjection):
 
 def test_inference_surjection(inference_surjection):
   _surjection(*inference_surjection)
+
+
+def test_declares_inverse_needs_rng():
+  assert AffineMaskedCouplingGenerativeFunnel.inverse_needs_rng is True
+  assert AffineMaskedCouplingGenerativeFunnel.forward_needs_rng is False

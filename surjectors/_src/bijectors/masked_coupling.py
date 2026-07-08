@@ -1,15 +1,14 @@
 from collections.abc import Callable
 
-import distrax
-from distrax._src.utils import math
 from jax import numpy as jnp
 
+from surjectors._src._math import sum_last
 from surjectors._src.bijectors.bijector import Bijector
 from surjectors._src.distributions.transformed_distribution import Array
 
 
 # ruff: noqa: PLR0913
-class MaskedCoupling(Bijector, distrax.MaskedCoupling):
+class MaskedCoupling(Bijector):
   """A masked coupling layer.
 
   Args:
@@ -52,33 +51,46 @@ class MaskedCoupling(Bijector, distrax.MaskedCoupling):
     event_ndims: int | None = None,
     inner_event_ndims: int = 0,
   ):
-    super().__init__(
-      mask, conditioner, bijector_fn, event_ndims, inner_event_ndims
-    )
+    if mask.dtype != bool:
+      raise ValueError(
+        f"'mask' must have boolean values; got dtype '{mask.dtype}'."
+      )
+    if event_ndims is not None and event_ndims < inner_event_ndims:
+      raise ValueError(
+        f"'event_ndims={event_ndims}' should be at least as large as"
+        f" 'inner_event_ndims={inner_event_ndims}'."
+      )
+    self._mask = mask
+    self._event_mask = jnp.reshape(mask, mask.shape + (1,) * inner_event_ndims)
+    self._conditioner = conditioner
+    self._inner_bijector = bijector_fn
+    self._inner_event_ndims = inner_event_ndims
+    if event_ndims is None:
+      self._event_ndims = mask.ndim + inner_event_ndims
+    else:
+      self._event_ndims = event_ndims
 
   def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
-    self._check_forward_input_shape(z)
     masked_z = jnp.where(self._event_mask, z, 0.0)
     if x is not None:
       masked_z = jnp.concatenate([masked_z, x], axis=-1)
     params = self._conditioner(masked_z)
     y0, log_d = self._inner_bijector(params).forward_and_log_det(z)
     y = jnp.where(self._event_mask, z, y0)
-    logdet = math.sum_last(
+    logdet = sum_last(
       jnp.where(self._mask, 0.0, log_d),
       self._event_ndims - self._inner_event_ndims,
     )
     return y, logdet
 
   def _inverse_and_likelihood_contribution(self, y, x=None, **kwargs):
-    self._check_inverse_input_shape(y)
     masked_y = jnp.where(self._event_mask, y, 0.0)
     if x is not None:
       masked_y = jnp.concatenate([masked_y, x], axis=-1)
     params = self._conditioner(masked_y)
     z0, log_d = self._inner_bijector(params).inverse_and_log_det(y)
     z = jnp.where(self._event_mask, y, z0)
-    logdet = math.sum_last(
+    logdet = sum_last(
       jnp.where(self._mask, 0.0, log_d),
       self._event_ndims - self._inner_event_ndims,
     )

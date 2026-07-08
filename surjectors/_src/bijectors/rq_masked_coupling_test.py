@@ -10,7 +10,7 @@ from surjectors import (
   TransformedDistribution,
 )
 from surjectors.nn import make_mlp
-from surjectors.util import make_alternating_binary_mask
+from surjectors.util import as_model, make_alternating_binary_mask
 
 
 def _base_distribution_fn(n_latent):
@@ -36,14 +36,12 @@ def make_bijector(n_dimension):
     )
     return bij
 
-  def _flow(method, **kwargs):
-    td = TransformedDistribution(
+  def _build_td():
+    return TransformedDistribution(
       _base_distribution_fn(n_dimension), _transformation_fn(n_dimension)
     )
-    return td(method, **kwargs)
 
-  td = hk.transform(_flow)
-  return td
+  return as_model(_build_td, methods=("log_prob",))
 
 
 def test_rq_masked_coupling():
@@ -51,8 +49,8 @@ def test_rq_masked_coupling():
   y = random.normal(random.PRNGKey(1), shape=(10, n_dimension))
 
   flow = make_bijector(n_dimension)
-  params = flow.init(random.PRNGKey(0), method="log_prob", y=y)
-  _ = flow.apply(params, None, method="log_prob", y=y)
+  params = flow.init(random.PRNGKey(0), y=y)
+  _ = flow.apply.log_prob(params, None, y=y)
 
 
 def test_conditional_rq_masked_coupling():
@@ -61,5 +59,5 @@ def test_conditional_rq_masked_coupling():
   x = random.normal(random.PRNGKey(1), shape=(10, 2))
 
   flow = make_bijector(n_dimension)
-  params = flow.init(random.PRNGKey(0), method="log_prob", y=y, x=x)
-  _ = flow.apply(params, None, method="log_prob", y=y, x=x)
+  params = flow.init(random.PRNGKey(0), y=y, x=x)
+  _ = flow.apply.log_prob(params, None, y=y, x=x)

@@ -1,14 +1,14 @@
 from collections.abc import Callable
+from typing import ClassVar
 
 import haiku as hk
 from jax import numpy as jnp
 
 from surjectors._src.bijectors.masked_coupling import MaskedCoupling
-from surjectors._src.surjectors.surjector import Surjector
+from surjectors._src.surjectors.funnel import Funnel
 
 
-# pylint: disable=too-many-function-args
-class MaskedCouplingInferenceFunnel(Surjector):
+class MaskedCouplingInferenceFunnel(Funnel):
   """A masked coupling inference funnel.
 
   The MaskedCouplingInferenceFunnel is a coupling funnel,
@@ -16,6 +16,11 @@ class MaskedCouplingInferenceFunnel(Surjector):
   as in MaskedCouplingI. Its inner bijectors needs to be specified in
   comparison to ASffineMaskedCouplingInferenceFunnel and
   RationalQuadraticSplineMaskedCouplingInferenceFunnel.
+
+  The forward direction invents the dropped dimensions by sampling from
+  the decoder, so it needs an active Haiku rng
+  (``forward_needs_rng`` is ``True``); the inverse direction is a pure
+  likelihood evaluation and needs no rng.
 
   Args:
       n_keep: number of dimensions to keep
@@ -57,6 +62,10 @@ class MaskedCouplingInferenceFunnel(Surjector):
           International Conference on Learning Representations, 2017.
   """
 
+  forward_needs_rng: ClassVar[bool] = (
+    True  # invents the dropped dims by sampling
+  )
+
   def __init__(
     self,
     n_keep: int,
@@ -64,7 +73,7 @@ class MaskedCouplingInferenceFunnel(Surjector):
     conditioner: Callable,
     bijector_fn: Callable,
   ):
-    self.n_keep = n_keep
+    super().__init__(n_keep)
     self.decoder = decoder
     self.conditioner = conditioner
     self.bijector_fn = bijector_fn
@@ -82,18 +91,14 @@ class MaskedCouplingInferenceFunnel(Surjector):
     faux, jac_det = self._inner_bijector(self._mask(y)).inverse_and_log_det(
       y, x=x
     )
-    # TODO(simon): this should be relegated to the base class:
-    #  MaskedCouplingInferenceFunnel (see issue #14 on GitHub)
-    z_condition = z = faux[:, : self.n_keep]
-    if x is not None:
-      z_condition = jnp.concatenate([z, x], axis=-1)
-    lc = self.decoder(z_condition).log_prob(y[:, self.n_keep :])
+    z, _ = self._split_input(faux)
+    _, y_minus = self._split_input(y)
+    z_condition = self._condition(z, x)
+    lc = self.decoder(z_condition).log_prob(y_minus)
     return z, lc + jac_det
 
   def _forward_and_likelihood_contribution(self, z, x=None, **kwargs):
-    z_condition = z
-    if x is not None:
-      z_condition = jnp.concatenate([z, x], axis=-1)
+    z_condition = self._condition(z, x)
     y_minus, jac_det = self.decoder(z_condition).sample_and_log_prob(
       seed=hk.next_rng_key()
     )
